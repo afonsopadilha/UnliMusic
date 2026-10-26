@@ -1,0 +1,10 @@
+{
+	"stream": {
+		"sounds": [
+			{
+				"name": "fabric-sound-api-v1:empty",
+				"stream": true
+			}
+		]
+	}
+}

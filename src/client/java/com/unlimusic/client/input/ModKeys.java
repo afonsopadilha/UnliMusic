@@ -2,11 +2,11 @@ package com.unlimusic.client.input;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.unlimusic.UnliMusic;
+import com.unlimusic.client.audio.TestPlayback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 /**
  * The mod's key mappings. Players can rebind them under Options → Controls → UnliMusic.
@@ -30,7 +30,7 @@ public final class ModKeys {
 
 	private static void onEndTick(Minecraft client) {
 		if (TEST_PRESS.poll() && client.player != null) {
-			client.player.sendSystemMessage(Component.translatable("message.unlimusic.test"));
+			TestPlayback.toggle(client);
 		}
 	}
 }

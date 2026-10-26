@@ -1,5 +1,5 @@
 {
 	"key.category.unlimusic.main": "UnliMusic",
 	"key.unlimusic.test": "Test",
-	"message.unlimusic.test": "UnliMusic is working! You pressed the test key."
+	"message.unlimusic.test_tone": "Playing a 440 Hz test tone (press again to stop)."
 }
