@@ -116,7 +116,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D7 | Own settings screen or a library (Cloth Config, YACL)? | E16 | Own screen, so players don't have to install more mods |
 | D8 | Tag library (e.g. jaudiotagger) for cover art and album of local files? | E14 | Start with only what lavaplayer provides |
 | D9 | Jamendo on a server without the mod? | E08 | Not supported: Jamendo needs the mod on the server (or singleplayer) |
-| D10 | The mod's license (the template came with CC0) | E20 | Choose deliberately before publishing |
+| D10 | The mod's license (the template came with CC0) | E20 | **Decided early, before making the repository public: MIT.** Same freedom as CC0, but copies must keep the copyright notice (credit); CC0 is not meant for software |
 | D11 | The jar is 30.9 MB, 27 MB of it lavaplayer natives for 12 platforms (32-bit Windows/Linux, ARM boards, musl…) that Minecraft hardly runs on | E20 | Repack `lavaplayer-natives` keeping only Windows x64, Linux x64/aarch64 and macOS; decide after E18 shows which systems matter |
 
 ## Ideas for later (outside the plan)

@@ -12,7 +12,7 @@ A public page for the mod with the jar to download, and a repeatable process for
 
 ## What gets done
 
-- **The mod's license (decision D10)**: the template came with CC0; choose deliberately (MIT, Apache-2.0, LGPL…).
+- **The mod's license (decision D10)**: already decided, MIT (changed from the template's CC0 before the repository went public). Only check that `LICENSE` ends up in the jar.
 - **`THIRD_PARTY_NOTICES`** with the licenses of everything inside the jar (lavaplayer Apache-2.0 and the dependencies listed in E01).
 - **Jamendo**:
   - non-commercial terms of use; confirm whether platform reward programmes (e.g. CurseForge) count as commercial use;
@@ -29,13 +29,13 @@ A public page for the mod with the jar to download, and a repeatable process for
 
 ## Done when
 
-- [ ] License chosen and third-party notices in the jar.
+- [ ] Third-party notices in the jar (the MIT license is already chosen).
 - [ ] D2 settled and documented in the README.
 - [ ] Page published and first downloadable version.
 
 ## Session kickoff prompt
 
-> Let's do entry E20 of the plan: read `docs/plan/E20-publishing.md`. We'll start with the license (D10) and the Jamendo client ID (D2).
+> Let's do entry E20 of the plan: read `docs/plan/E20-publishing.md`. We'll start with the third-party notices and the Jamendo client ID (D2).
 
 ## Session notes
 

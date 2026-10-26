@@ -125,7 +125,7 @@ Jamendo support needs a free client ID, created on the [Jamendo developer portal
 - Audio decoding: [lavaplayer](https://github.com/lavalink-devs/lavaplayer).
 - Built with [Fabric](https://fabricmc.net/).
 
-The mod's code is licensed under [CC0 1.0](LICENSE).
+The mod's code is licensed under the [MIT License](LICENSE).
 
 <div align="center">
 <sub>UnliMusic is not affiliated with Mojang or Microsoft.</sub>
