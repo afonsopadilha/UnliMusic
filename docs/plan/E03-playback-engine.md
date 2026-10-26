@@ -43,7 +43,7 @@ One key pauses and resumes at the same spot; another stops the music; leaving th
 
 ## Pitfalls
 
-- In singleplayer, pressing ESC pauses the game and Minecraft pauses sounds. See what that does to our stream.
+- In singleplayer, pressing ESC pauses the game and Minecraft pauses sounds. Seen in E02: the engine pauses our channel and stops calling `read()`, lavaplayer keeps its buffer full, and playback resumes with no warning.
 - The `/stopsound` command and other things in the game can stop our sound instance without us knowing → `MusicPlayer` has to detect it.
 - Pausing a radio "in place" makes no sense: on resume, it goes back to live (handle in E04).
 

@@ -63,7 +63,7 @@ Full plan in `docs/plan/README.md`. Each entry is one work session and has its o
 - [x] E01 Bundle lavaplayer inside the jar
 
 **Phase 1 — Listening alone**
-- [ ] E02 Play a fixed local file (lavaplayer → AudioStream → sound instance pipeline)
+- [x] E02 Play a fixed local file (lavaplayer → AudioStream → sound instance pipeline)
 - [ ] E03 Playback engine: pause, stop, end of track
 - [ ] E04 Play a radio station from a fixed URL
 - [ ] E05 "Now playing" HUD

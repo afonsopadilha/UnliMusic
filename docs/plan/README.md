@@ -118,6 +118,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D9 | Jamendo on a server without the mod? | E08 | Not supported: Jamendo needs the mod on the server (or singleplayer) |
 | D10 | The mod's license (the template came with CC0) | E20 | **Decided early, before making the repository public: MIT.** Same freedom as CC0, but copies must keep the copyright notice (credit); CC0 is not meant for software |
 | D11 | The jar is 30.9 MB, 27 MB of it lavaplayer natives for 12 platforms (32-bit Windows/Linux, ARM boards, musl…) that Minecraft hardly runs on | E20 | Repack `lavaplayer-natives` keeping only Windows x64, Linux x64/aarch64 and macOS; decide after E18 shows which systems matter |
+| D12 | PCM sample rate: the plan said 48 kHz, but lavaplayer's `COMMON_PCM_S16_LE` is 44.1 kHz | E02 | **Decided in E02: 44.1 kHz.** It is the rate of almost every MP3, Jamendo track and radio stream, so lavaplayer rarely resamples; OpenAL accepts any rate |
 
 ## Ideas for later (outside the plan)
 
@@ -132,7 +133,9 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 - **Entrypoint**: the class Fabric calls on startup. `main` runs on client and server; `client` only in the player's game.
 - **Mixin**: a way of changing Minecraft's code from the inside. Powerful but fragile; only used when the Fabric API isn't enough.
 - **Game / server / sound / network thread**: Minecraft does several things in parallel. Slow work goes off the game thread; touching the world or the screen only happens on it.
-- **PCM**: "raw" sound, a list of numbers (samples). 16 bits, 48,000 samples per second, 2 channels = stereo.
+- **PCM**: "raw" sound, a list of numbers (samples). 16 bits, 44,100 samples per second, 2 channels = stereo.
+- **Streaming**: playing a sound in chunks (about a second at a time) instead of loading it whole. The sound engine **pulls** the next chunk by calling our `AudioStream.read()` on its own thread.
+- **Frame** (lavaplayer): 20 ms of decoded PCM (960 samples per channel). `PcmAudioStream` joins frames into the one-second chunks the engine asks for.
 - **Little-endian**: the byte order of each sample. Minecraft's OpenAL wants little-endian.
 - **`AudioStream`**: Minecraft interface that feeds PCM to the sound engine, in chunks.
 - **`SoundInstance`**: "a sound that is playing" in Minecraft (position, volume, category).

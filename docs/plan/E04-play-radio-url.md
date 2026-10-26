@@ -45,7 +45,8 @@ The test key plays a Portuguese radio station from a fixed URL (taken by hand fr
 
 - URLs that redirect; HTTPS certificates; stations that take a long time to start.
 - **HE-AAC (AAC+)**, common on radio: confirm whether lavaplayer decodes it.
-- 44.1 kHz and mono stations: the output format is always ours, lavaplayer converts.
+- 48 kHz and mono stations: the output format is always ours (44.1 kHz stereo, D12), lavaplayer converts.
+- **Prebuffer before playing** (found in E02): `PcmAudioStream.read()` blocks the sound engine's thread while it waits for frames, and the engine asks for 4 s of audio as soon as the stream is attached. A stream that arrives in real time would freeze every game sound, so wait until lavaplayer has a few seconds buffered before creating the sound instance.
 
 ## APIs
 

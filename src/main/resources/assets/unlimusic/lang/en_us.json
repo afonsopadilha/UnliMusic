@@ -1,5 +1,10 @@
 {
 	"key.category.unlimusic.main": "UnliMusic",
 	"key.unlimusic.test": "Test",
-	"message.unlimusic.test_tone": "Playing a 440 Hz test tone (press again to stop)."
+	"message.unlimusic.test_tone": "No test song set, playing a 440 Hz tone. To play a song, write its path in %s",
+	"message.unlimusic.loading": "Loading %s…",
+	"message.unlimusic.load_failed": "Could not play %s: %s",
+	"message.unlimusic.load_failed.engine": "the audio engine failed to start (see the log)",
+	"message.unlimusic.load_failed.not_found": "file not found or format not supported",
+	"message.unlimusic.load_failed.playlist": "it is a playlist, not a single track"
 }
