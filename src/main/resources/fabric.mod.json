@@ -3,13 +3,14 @@
 	"id": "unlimusic",
 	"version": "${version}",
 	"name": "UnliMusic",
-	"description": "Listen to music in-game, on your own or in sync with every player: local files, Creative Commons music from Jamendo and online radio stations.",
+	"description": "Music inside Minecraft: local files, Jamendo and online radio, on your own or in sync with every player in the world.",
 	"authors": [
-		"Me!"
+		"Afonso Padilha"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/afonsopadilha/UnliMusic",
+		"sources": "https://github.com/afonsopadilha/UnliMusic",
+		"issues": "https://github.com/afonsopadilha/UnliMusic/issues"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/unlimusic/icon.png",
@@ -22,13 +23,6 @@
 			"com.unlimusic.client.UnliMusicClient"
 		]
 	},
-	"mixins": [
-		"unlimusic.mixins.json",
-		{
-			"config": "unlimusic.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~26.3",

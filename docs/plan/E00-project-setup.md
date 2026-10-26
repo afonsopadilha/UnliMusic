@@ -41,14 +41,14 @@ Under *Options → Controls* there is an **UnliMusic** category with a "Test" ke
 
 ## Done when
 
-- [ ] The key shows up in Controls with a translated name, in its own category.
-- [ ] One press = one message (not one per tick while held).
-- [ ] Example mixins removed; `./gradlew build` passes.
-- [ ] D1 decided and `CLAUDE.md` consistent with `gradle.properties`.
+- [x] The key shows up in Controls with a translated name, in its own category.
+- [x] One press = one message (not one per tick while held).
+- [x] Example mixins removed; `./gradlew build` passes.
+- [x] D1 decided and `CLAUDE.md` consistent with `gradle.properties`.
 
 ## Pitfalls
 
-- Use `consumeClick()` in a `while` loop, not `isDown()`, otherwise it fires on every tick.
+- `isDown()` alone fires on every tick, and in 26.3 `consumeClick()` alone fires on every OS key repeat while the key is held (`KeyboardHandler.keyPress` calls `KeyMapping.click` for both press and repeat). Use `SinglePress` (`client/input/`), which combines both.
 - Client code (keys, the player's chat) never goes in `src/main`: on a dedicated server those classes don't exist.
 - Old tutorials use Yarn (`KeyBinding`, `MinecraftClient`…). In 26.x it's the official names (`KeyMapping`, `Minecraft`…).
 
@@ -63,4 +63,13 @@ Under *Options → Controls* there is an **UnliMusic** category with a "Test" ke
 
 ## Session notes
 
-*(fill in at the end: decisions made, what was left to do)*
+**26 Oct 2026**
+
+- **D1 decided: Minecraft 26.3.** `CLAUDE.md` now matches `gradle.properties`; nothing else changed.
+- **JDK 25:** IntelliJ already used `ms-25` (`~/.jdks/ms-25.0.4.1`), but `./gradlew` from a terminal ran on JDK 17 (PATH, no `JAVA_HOME`). Fixed with `gradle/gradle-daemon-jvm.properties` (`toolchainVersion=25`): Gradle finds a JDK 25 on its own, on any PC, without touching environment variables.
+- **Template cleaned:** example mixins and both `.mixins.json` files removed (and the `mixins` block in `fabric.mod.json`); description, author and GitHub links filled in. The license is still the template's CC0 → pending, D10 (E20).
+- **`.gitignore`:** `unlimusic-server.json` (secrets for E07).
+- **Test key:** `client/input/ModKeys` registers the "UnliMusic" category (`KeyMapping.Category.register(UnliMusic.id("main"))`, translated via `key.category.unlimusic.main`) and the "Test" key on `J`; on `END_CLIENT_TICK` it writes to chat with `LocalPlayer.sendSystemMessage(Component)`. Translations in `en_us.json` and `pt_pt.json`, both tested in game.
+- **Surprise:** holding the key sent ~25 messages per second. In 26.3 the OS key repeats also count as clicks, so `consumeClick()` alone isn't enough. Fixed with `client/input/SinglePress` (drains the clicks + ignores them if the key was already down on the previous tick). Use it for E03's keys too.
+- **APIs confirmed (26.3):** `new KeyMapping(String, InputConstants.Type, int, KeyMapping.Category)`, `KeyMapping.Category.register(Identifier)`, `ClientTickEvents.END_CLIENT_TICK` (`Minecraft`), `LocalPlayer.sendSystemMessage(Component)`.
+- **Package layout:** adopted as proposed above; folders are created when the first class needs them (for now only `client/input/`).

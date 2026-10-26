@@ -8,8 +8,8 @@ Fabric mod for listening to music inside the game, on your own or synced across 
 
 ## Stack
 
-- Minecraft Java 26.1.x, Fabric Loader + Fabric API, Java 25, Gradle (project generated from the official Fabric template).
-- 26.1 is no longer obfuscated: it uses the official names from Minecraft's code. **Don't use Yarn** or examples/tutorials from old versions.
+- Minecraft Java 26.3 (decision D1), Fabric Loader + Fabric API, Java 25, Gradle (project generated from the official Fabric template).
+- Since 26.1 Minecraft is no longer obfuscated: it uses the official names from Minecraft's code. **Don't use Yarn** or examples/tutorials from old versions.
 - Before using any Minecraft or Fabric API, confirm the name and signature in the Fabric documentation for the exact version in `gradle.properties` (or in the decompiled code in the IDE). Don't guess from memory.
 - Mod ID: `unlimusic` (see `fabric.mod.json`).
 
@@ -45,6 +45,7 @@ Only these three, all legal and with no account/Premium needed by players:
 
 ## Build
 
+- Gradle runs on JDK 25 because of `gradle/gradle-daemon-jvm.properties`; the JDK 17 on the PATH is not used.
 - lavaplayer has many dependencies (HTTP client, AAC decoder via JitPack, etc.). They all have to go inside the mod jar with Loom's `include`. `ClassNotFoundException` at runtime = dependency missing from the jar.
 
 ## Secrets
@@ -56,7 +57,7 @@ Only these three, all legal and with no account/Premium needed by players:
 Full plan in `docs/plan/README.md`. Each entry is one work session and has its own file in `docs/plan/` (what to do, how to test, APIs to confirm, open decisions). The old roadmap (steps 0–6) is fully covered by these entries.
 
 **Phase 0 — Foundations**
-- [ ] E00 Clean up the project and first key (test keybind in chat)
+- [x] E00 Clean up the project and first key (test keybind in chat)
 - [ ] E01 Bundle lavaplayer inside the jar
 
 **Phase 1 — Listening alone**

@@ -107,7 +107,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 
 | # | Decision | Where | Recommendation |
 |---|---|---|---|
-| D1 | `CLAUDE.md` says Minecraft 26.1.x, but the project is on **26.3** | E00 | Stay on 26.3 (it already launches) and fix `CLAUDE.md` |
+| D1 | `CLAUDE.md` says Minecraft 26.1.x, but the project is on **26.3** | E00 | **Decided in E00: 26.3.** `CLAUDE.md` fixed to match `gradle.properties` |
 | D2 | Whose Jamendo client ID goes into a public release? An ID embedded in the jar is exposed, and the quota (~35,000/month) is shared by every player in the world | E07, E20 | For now: your ID in a file outside Git. Before publishing: each server owner sets their own; without an ID, the Jamendo tab is disabled with instructions |
 | D3 | Who can control the shared music? | E12 | OP by default, configurable |
 | D4 | Scope of shared mode: whole server, dimension or area? | E10 | Whole server first |
