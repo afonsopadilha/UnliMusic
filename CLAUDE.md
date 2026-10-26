@@ -7,7 +7,7 @@ Mod Fabric que permite ouvir música dentro do jogo, sozinho ou sincronizada ent
 - Minecraft Java 26.1.x, Fabric Loader + Fabric API, Java 25, Gradle (projeto gerado pelo template oficial do Fabric).
 - A 26.1 já não é ofuscada: usa os nomes oficiais do código do Minecraft. **Não uses Yarn** nem exemplos/tutoriais de versões antigas.
 - Antes de usar qualquer API do Minecraft ou do Fabric, confirma o nome e a assinatura na documentação do Fabric para a versão exata em `gradle.properties` (ou no código descompilado no IDE). Não adivinhes de memória.
-- Mod ID: `TODO` (ver `fabric.mod.json`).
+- Mod ID: `unlimusic` (ver `fabric.mod.json`).
 
 ## Fontes de música (decisão fechada)
 
@@ -49,15 +49,45 @@ Só estas três, todas legais e sem conta/Premium para os jogadores:
 
 ## Roadmap
 
-0. [ ] Keybind de teste que escreve no chat (confirmar se já funciona)
-1. [ ] Tocar um ficheiro local fixo ao carregar numa tecla (prova o pipeline lavaplayer → AudioStream → sound instance)
-2. [ ] Tocar uma rádio a partir de um URL fixo
-3. [ ] HUD "a tocar agora" + keybinds pausar/parar
-4. [ ] Ecrã de pesquisa (rádios por país, Jamendo)
-5. [ ] Modo partilhado: pacotes cliente-servidor, comandos `/music`, sincronização
-6. [ ] Navegador de ficheiros locais + ecrã de definições
+Plano completo em `docs/plano/README.md`. Cada entrada é uma sessão de trabalho e tem o seu ficheiro em `docs/plano/` (o que fazer, como testar, APIs a confirmar, decisões em aberto). O roadmap antigo (passos 0–6) está todo incluído nestas entradas.
+
+**Fase 0 — Fundações**
+- [ ] E00 Arrumar o projeto e primeira tecla (keybind de teste no chat)
+- [ ] E01 Pôr a lavaplayer dentro do jar
+
+**Fase 1 — Ouvir sozinho**
+- [ ] E02 Tocar um ficheiro local fixo (pipeline lavaplayer → AudioStream → sound instance)
+- [ ] E03 Motor de reprodução: pausar, parar, fim da faixa
+- [ ] E04 Tocar uma rádio a partir de um URL fixo
+- [ ] E05 HUD "a tocar agora"
+
+**Fase 2 — Encontrar música**
+- [ ] E06 Pesquisa de rádios (Radio Browser)
+- [ ] E07 Cliente da Jamendo no servidor, com cache
+- [ ] E08 Rede: pacotes cliente ↔ servidor
+- [ ] E09 Ecrã principal: rádios e Jamendo
+
+**Fase 3 — Ouvir juntos**
+- [ ] E10 Modo partilhado: estado no servidor e `/music`
+- [ ] E11 Sincronização nos clientes
+- [ ] E12 Permissões, segurança e limites
+- [ ] E13 Fila partilhada no ecrã
+
+**Fase 4 — Locais e definições**
+- [ ] E14 Biblioteca de ficheiros locais
+- [ ] E15 Capas e imagens (opcional)
+- [ ] E16 Definições e configuração
+
+**Fase 5 — Extras**
+- [ ] E17 Som posicional tipo jukebox (opcional)
+
+**Fase 6 — Lançamento**
+- [ ] E18 Testes a sério: multijogador, servidor dedicado, outros sistemas
+- [ ] E19 Polimento: traduções, mensagens, erros
+- [ ] E20 Publicar
 
 ## Forma de trabalhar
 
+- Cada sessão começa por ler a sua entrada em `docs/plano/` e confirma as APIs marcadas "por confirmar" antes de escrever código.
 - Passos pequenos; correr o cliente (`./gradlew runClient`) e confirmar que funciona antes de avançar.
-- Atualizar o roadmap acima quando um passo fica concluído.
+- No fim da sessão: preencher "Notas da sessão" na entrada, registar decisões tomadas (tabela "Decisões em aberto" no `docs/plano/README.md`) e marcar a entrada no roadmap acima.
