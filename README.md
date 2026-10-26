@@ -87,7 +87,7 @@ flowchart LR
 
 ## 🗺️ Roadmap
 
-The full plan, with one sheet per work session, lives in [`docs/plano/`](docs/plano/README.md).
+The full plan, with one sheet per work session, lives in [`docs/plan/`](docs/plan/README.md).
 
 | Phase | Goal | Entries | Status |
 |---|---|---|:---:|

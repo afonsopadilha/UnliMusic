@@ -3,7 +3,7 @@
 	"id": "unlimusic",
 	"version": "${version}",
 	"name": "UnliMusic",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Listen to music in-game, on your own or in sync with every player: local files, Creative Commons music from Jamendo and online radio stations.",
 	"authors": [
 		"Me!"
 	],

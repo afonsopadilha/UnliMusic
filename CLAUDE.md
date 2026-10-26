@@ -1,93 +1,97 @@
-# Mod de música para Minecraft
+# Minecraft music mod
 
-Mod Fabric que permite ouvir música dentro do jogo, sozinho ou sincronizada entre todos os jogadores do mesmo mundo. Projeto pessoal; sou novo em modding, por isso explica as decisões e não apenas o código.
+Fabric mod for listening to music inside the game, on your own or synced across every player in the same world. Personal project; I'm new to modding, so explain the decisions and not just the code.
+
+## Language
+
+- Everything in the repository (code, comments, docs, README, commit messages) is written in English. In-game text goes through the language files (`en_us` and `pt_pt`).
 
 ## Stack
 
-- Minecraft Java 26.1.x, Fabric Loader + Fabric API, Java 25, Gradle (projeto gerado pelo template oficial do Fabric).
-- A 26.1 já não é ofuscada: usa os nomes oficiais do código do Minecraft. **Não uses Yarn** nem exemplos/tutoriais de versões antigas.
-- Antes de usar qualquer API do Minecraft ou do Fabric, confirma o nome e a assinatura na documentação do Fabric para a versão exata em `gradle.properties` (ou no código descompilado no IDE). Não adivinhes de memória.
-- Mod ID: `unlimusic` (ver `fabric.mod.json`).
+- Minecraft Java 26.1.x, Fabric Loader + Fabric API, Java 25, Gradle (project generated from the official Fabric template).
+- 26.1 is no longer obfuscated: it uses the official names from Minecraft's code. **Don't use Yarn** or examples/tutorials from old versions.
+- Before using any Minecraft or Fabric API, confirm the name and signature in the Fabric documentation for the exact version in `gradle.properties` (or in the decompiled code in the IDE). Don't guess from memory.
+- Mod ID: `unlimusic` (see `fabric.mod.json`).
 
-## Fontes de música (decisão fechada)
+## Music sources (closed decision)
 
-Só estas três, todas legais e sem conta/Premium para os jogadores:
+Only these three, all legal and with no account/Premium needed by players:
 
-1. **Ficheiros locais** do jogador.
-2. **Jamendo** (música Creative Commons, API v3.0, precisa de client ID).
-3. **Rádios online** via **Radio Browser** (sem chave; pesquisa por país, ex. `countrycode=PT`).
+1. The player's **local files**.
+2. **Jamendo** (Creative Commons music, API v3.0, needs a client ID).
+3. **Online radio** via **Radio Browser** (no key; search by country, e.g. `countrycode=PT`).
 
-**Proibido:** YouTube, Spotify, Deezer ou qualquer extração/scraping de serviços comerciais. Na lavaplayer, regista apenas os source managers HTTP e local; nunca chames `AudioSourceManagers.registerRemoteSources(...)`.
+**Forbidden:** YouTube, Spotify, Deezer or any extraction/scraping of commercial services. In lavaplayer, register only the HTTP and local source managers; never call `AudioSourceManagers.registerRemoteSources(...)`.
 
-## Modos
+## Modes
 
-- **Partilhado** (servidor manda): Jamendo e rádios. O servidor guarda a fila/estado e envia aos clientes "faixa X a partir do instante T". Rádio = stream ao vivo, sem seek (todos sintonizam). Jamendo = sincroniza por ID da faixa + instante de início, cada cliente faz seek.
-- **Pessoal** (só o próprio jogador): ficheiros locais, e também Jamendo/rádios.
-- Ficheiros locais NÃO são partilháveis (só existem num PC). Futuro possível: pasta de músicas no servidor servida aos clientes.
-- O mod tem de estar no servidor e em todos os clientes para o modo partilhado.
+- **Shared** (server in charge): Jamendo and radio. The server keeps the queue/state and sends clients "track X from time T". Radio = live stream, no seek (everyone tunes in). Jamendo = sync by track ID + start time, each client seeks.
+- **Personal** (only the player themselves): local files, and also Jamendo/radio.
+- Local files are NOT shareable (they only exist on one PC). Possible future: a music folder on the server served to clients.
+- The mod has to be on the server and on every client for shared mode.
 
-## Arquitetura de áudio
+## Audio architecture
 
-- Interface `MusicSource` (ou equivalente) com `play(faixa, posição)`, `pause()`, `stop()`; cada fonte implementa-a.
-- Descodificação: **lavaplayer** (`dev.arbjerg:lavaplayer`), formato de saída PCM 16 bits little-endian (não Opus).
-- PCM → `AudioStream` próprio → sound instance via Fabric API (`FabricSoundInstance` permite fornecer um `AudioStream`). Assim o volume segue um slider do jogo (Jukebox/Records) e há opção de som posicional tipo jukebox.
-- Todo o trabalho lento (rede, descodificação, pedidos às APIs) corre fora da thread do jogo. Nunca bloquear em `ClientTickEvents`.
+- `MusicSource` interface (or equivalent) with `play(track, position)`, `pause()`, `stop()`; each source implements it.
+- Decoding: **lavaplayer** (`dev.arbjerg:lavaplayer`), 16-bit little-endian PCM output format (not Opus).
+- PCM → our own `AudioStream` → sound instance via the Fabric API (`FabricSoundInstance` lets you provide an `AudioStream`). That way the volume follows a game slider (Jukebox/Records) and there's an option for positional jukebox-style sound.
+- All slow work (network, decoding, API requests) runs off the game thread. Never block in `ClientTickEvents`.
 
-## Notas por fonte
+## Notes per source
 
-- **Jamendo:** quota gratuita para apps não comerciais (~35 000 pedidos/mês) partilhada por todos os jogadores do client ID: fazer pesquisas no servidor e guardar em cache. Creditar sempre artista e licença no HUD. Uso não comercial.
-- **Radio Browser:** enviar um `User-Agent` próprio nos pedidos.
-- **Locais:** pasta escolhida nas definições; usar tags (título, artista, capa) para o HUD.
+- **Jamendo:** free quota for non-commercial apps (~35,000 requests/month) shared by every player using the client ID: run searches on the server and cache them. Always credit artist and license in the HUD. Non-commercial use.
+- **Radio Browser:** send our own `User-Agent` on requests.
+- **Local:** folder chosen in the settings; use tags (title, artist, cover) for the HUD.
 
 ## Build
 
-- A lavaplayer tem muitas dependências (HTTP client, descodificador AAC via JitPack, etc.). Todas têm de ir dentro do jar do mod com `include` do Loom. `ClassNotFoundException` em runtime = dependência em falta no jar.
+- lavaplayer has many dependencies (HTTP client, AAC decoder via JitPack, etc.). They all have to go inside the mod jar with Loom's `include`. `ClassNotFoundException` at runtime = dependency missing from the jar.
 
-## Segredos
+## Secrets
 
-- Client ID da Jamendo e qualquer outra chave ficam num ficheiro de configuração fora do Git (adicionar ao `.gitignore`).
+- The Jamendo client ID and any other key live in a config file outside Git (add it to `.gitignore`).
 
 ## Roadmap
 
-Plano completo em `docs/plano/README.md`. Cada entrada é uma sessão de trabalho e tem o seu ficheiro em `docs/plano/` (o que fazer, como testar, APIs a confirmar, decisões em aberto). O roadmap antigo (passos 0–6) está todo incluído nestas entradas.
+Full plan in `docs/plan/README.md`. Each entry is one work session and has its own file in `docs/plan/` (what to do, how to test, APIs to confirm, open decisions). The old roadmap (steps 0–6) is fully covered by these entries.
 
-**Fase 0 — Fundações**
-- [ ] E00 Arrumar o projeto e primeira tecla (keybind de teste no chat)
-- [ ] E01 Pôr a lavaplayer dentro do jar
+**Phase 0 — Foundations**
+- [ ] E00 Clean up the project and first key (test keybind in chat)
+- [ ] E01 Bundle lavaplayer inside the jar
 
-**Fase 1 — Ouvir sozinho**
-- [ ] E02 Tocar um ficheiro local fixo (pipeline lavaplayer → AudioStream → sound instance)
-- [ ] E03 Motor de reprodução: pausar, parar, fim da faixa
-- [ ] E04 Tocar uma rádio a partir de um URL fixo
-- [ ] E05 HUD "a tocar agora"
+**Phase 1 — Listening alone**
+- [ ] E02 Play a fixed local file (lavaplayer → AudioStream → sound instance pipeline)
+- [ ] E03 Playback engine: pause, stop, end of track
+- [ ] E04 Play a radio station from a fixed URL
+- [ ] E05 "Now playing" HUD
 
-**Fase 2 — Encontrar música**
-- [ ] E06 Pesquisa de rádios (Radio Browser)
-- [ ] E07 Cliente da Jamendo no servidor, com cache
-- [ ] E08 Rede: pacotes cliente ↔ servidor
-- [ ] E09 Ecrã principal: rádios e Jamendo
+**Phase 2 — Finding music**
+- [ ] E06 Radio search (Radio Browser)
+- [ ] E07 Server-side Jamendo client, with cache
+- [ ] E08 Networking: client ↔ server packets
+- [ ] E09 Main screen: radios and Jamendo
 
-**Fase 3 — Ouvir juntos**
-- [ ] E10 Modo partilhado: estado no servidor e `/music`
-- [ ] E11 Sincronização nos clientes
-- [ ] E12 Permissões, segurança e limites
-- [ ] E13 Fila partilhada no ecrã
+**Phase 3 — Listening together**
+- [ ] E10 Shared mode: server state and `/music`
+- [ ] E11 Synchronization on the clients
+- [ ] E12 Permissions, security and limits
+- [ ] E13 Shared queue on screen
 
-**Fase 4 — Locais e definições**
-- [ ] E14 Biblioteca de ficheiros locais
-- [ ] E15 Capas e imagens (opcional)
-- [ ] E16 Definições e configuração
+**Phase 4 — Local files and settings**
+- [ ] E14 Local file library
+- [ ] E15 Cover art and images (optional)
+- [ ] E16 Settings and configuration
 
-**Fase 5 — Extras**
-- [ ] E17 Som posicional tipo jukebox (opcional)
+**Phase 5 — Extras**
+- [ ] E17 Positional jukebox-style sound (optional)
 
-**Fase 6 — Lançamento**
-- [ ] E18 Testes a sério: multijogador, servidor dedicado, outros sistemas
-- [ ] E19 Polimento: traduções, mensagens, erros
-- [ ] E20 Publicar
+**Phase 6 — Release**
+- [ ] E18 Real testing: multiplayer, dedicated server, other systems
+- [ ] E19 Polish: translations, messages, errors
+- [ ] E20 Publishing
 
-## Forma de trabalhar
+## How we work
 
-- Cada sessão começa por ler a sua entrada em `docs/plano/` e confirma as APIs marcadas "por confirmar" antes de escrever código.
-- Passos pequenos; correr o cliente (`./gradlew runClient`) e confirmar que funciona antes de avançar.
-- No fim da sessão: preencher "Notas da sessão" na entrada, registar decisões tomadas (tabela "Decisões em aberto" no `docs/plano/README.md`) e marcar a entrada no roadmap acima.
+- Each session starts by reading its entry in `docs/plan/` and confirms the APIs marked "To confirm" before writing code.
+- Small steps; run the client (`./gradlew runClient`) and confirm it works before moving on.
+- At the end of the session: fill in "Session notes" in the entry, record decisions made (the "Open decisions" table in `docs/plan/README.md`) and tick the entry in the roadmap above.
