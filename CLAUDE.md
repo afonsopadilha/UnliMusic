@@ -46,7 +46,9 @@ Only these three, all legal and with no account/Premium needed by players:
 ## Build
 
 - Gradle runs on JDK 25 because of `gradle/gradle-daemon-jvm.properties`; the JDK 17 on the PATH is not used.
-- lavaplayer has many dependencies (HTTP client, AAC decoder via JitPack, etc.). They all have to go inside the mod jar with Loom's `include`. `ClassNotFoundException` at runtime = dependency missing from the jar.
+- lavaplayer and its dependencies (HTTP client, Jackson, natives) go inside the mod jar through the `bundled` configuration in `build.gradle`: Loom's `include` alone is not transitive. Libraries Minecraft already ships (slf4j, commons-io) and those only used by sources we don't register are excluded there.
+- MP3, AAC, Vorbis and resampling are decoded by lavaplayer's native `connector` library (`lavaplayer-natives`, no JitPack). It exists for Windows x64/x86, Linux (x64, ARM, musl) and macOS (Intel + Apple Silicon), **not Windows ARM64**.
+- `ClassNotFoundException` at runtime = dependency missing from the jar. `runClient` can't catch that: test the built jar with `./gradlew prodClient` (Fabric's real launcher, in `run-prod/`).
 
 ## Secrets
 
@@ -58,7 +60,7 @@ Full plan in `docs/plan/README.md`. Each entry is one work session and has its o
 
 **Phase 0 — Foundations**
 - [x] E00 Clean up the project and first key (test keybind in chat)
-- [ ] E01 Bundle lavaplayer inside the jar
+- [x] E01 Bundle lavaplayer inside the jar
 
 **Phase 1 — Listening alone**
 - [ ] E02 Play a fixed local file (lavaplayer → AudioStream → sound instance pipeline)

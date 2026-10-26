@@ -22,6 +22,21 @@ loom {
 	}
 }
 
+configurations {
+	// Third-party libraries that players don't have, so they travel inside our jar (jar-in-jar).
+	// Only the client plays audio, so only src/client can compile against them.
+	bundled {
+		canBeConsumed = false
+	}
+	clientImplementation.extendsFrom bundled
+
+	// Other mods to install next to ours in prodClient (only the mod jars themselves).
+	productionMods {
+		canBeConsumed = false
+		transitive = false
+	}
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -29,6 +44,45 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	productionMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Audio decoding (MP3, AAC, OGG, radio streams...).
+	// The excludes go here and not on the `bundled` configuration: configuration excludes are
+	// inherited by clientImplementation and would also hide the game's own copies.
+	bundled("dev.arbjerg:lavaplayer:${project.lavaplayer_version}") {
+		// Minecraft already ships these, on the client and on the dedicated server.
+		// A second, older copy inside our jar could clash with the game's.
+		exclude group: 'org.slf4j', module: 'slf4j-api'
+		exclude group: 'commons-io', module: 'commons-io'
+
+		// Only used by lavaplayer sources we never register (YouTube, Bandcamp, Niconico,
+		// Yandex Music...), checked with jdeps. Leaving them out makes the jar smaller.
+		exclude group: 'org.mozilla'                          // rhino: YouTube signatures
+		exclude group: 'org.jsoup', module: 'jsoup'           // HTML scraping
+		exclude group: 'org.json', module: 'json'
+		exclude group: 'net.iharder', module: 'base64'
+		exclude group: 'commons-codec', module: 'commons-codec'
+		exclude group: 'org.jetbrains', module: 'annotations' // compile-time only
+	}
+}
+
+// Loom's `include` is not transitive: on its own it would pack lavaplayer and none of the
+// libraries lavaplayer needs. So every jar `bundled` resolves to is included one by one
+// (going by jars skips pom-only modules such as jackson-bom).
+configurations.include.dependencies.addAllLater(provider {
+	configurations.bundled.incoming.artifacts.artifacts
+		.collect { it.id.componentIdentifier }
+		.findAll { it instanceof ModuleComponentIdentifier }
+		.collect { dependencies.create(it.displayName) }
+})
+
+// Starts the game from the built jar the way a player's launcher does (Fabric's own launcher,
+// jar-in-jar and all). runClient puts every library straight on the classpath instead, so a
+// library missing from the jar only shows up here.
+tasks.register("prodClient", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+	mods.from(tasks.named("jar"))
+	mods.from(configurations.productionMods)
+	runDir = file("run-prod")
 }
 
 processResources {
