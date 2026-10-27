@@ -15,7 +15,8 @@ Title and artist in the corner, a progress bar moving along, a pause icon when p
 - **HUD element** registered with `HudElementRegistry`.
 - **Watch out for the new drawing model**: in 26.x the HUD implements `extractRenderState(GuiGraphicsExtractor, DeltaTracker)`. Tutorials using `DrawContext` or `GuiGraphics.drawString` are from old versions and won't work.
 - **Reads the state from `MusicPlayer`** (E03). No heavy work here: this runs every frame.
-- **Credit/license**: the space is prepared now, even before Jamendo exists (E07).
+- **Credit/license**: the space is prepared now, even before Jamendo exists (E07). Jamendo's terms (clause 4.1, see E07) ask for three things: the artist as creator, **Jamendo as provider** ("via Jamendo"), and a **direct link to the track's page**. The HUD shows the first two; the link lives in the mod's screen, as an "Open on Jamendo" button (E09).
+- **The HUD is display-only (decision D14).** While playing, Minecraft captures the mouse to move the camera, so nothing drawn on the HUD can be clicked. Every control lives in the mod's screen (E09), opened with a key, plus the quick keys from E03.
 - **Hiding**: with F1 and, later, through an option in the settings (E16). A configurable position is left for E16.
 - All text via language files.
 

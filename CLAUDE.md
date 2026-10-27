@@ -30,6 +30,13 @@ Only these three, all legal and with no account/Premium needed by players:
 - Local files are NOT shareable (they only exist on one PC). Possible future: a music folder on the server served to clients.
 - The mod has to be on the server and on every client for shared mode.
 
+## Interface (decision D14)
+
+- **The mod's screen is the main way to use it.** A key opens it; searching, playing, pausing, the queue, shared mode and the Jamendo links are all buttons there. A player never needs to type a command.
+- **The HUD is display-only**: while playing, Minecraft captures the mouse, so nothing on the HUD can be clicked.
+- **Quick keys** (pause, stop…) work without opening the screen, and can be changed in the game's Controls menu.
+- **`/music` commands** stay for server admins, the server console and testing. The logic lives in shared classes (`SharedMusicState`…); commands and the screen's packets both call it, with the same permission checks on the server.
+
 ## Audio architecture
 
 - `MusicSource` interface (or equivalent) with `play(track, position)`, `pause()`, `stop()`; each source implements it.
@@ -39,7 +46,11 @@ Only these three, all legal and with no account/Premium needed by players:
 
 ## Notes per source
 
-- **Jamendo:** free quota for non-commercial apps (~35,000 requests/month) shared by every player using the client ID: run searches on the server and cache them. Always credit artist and license in the HUD. Non-commercial use.
+- **Jamendo:** free quota for non-commercial apps (~35,000 requests/month) shared by every player using the client ID: run searches on the server and cache them. Non-commercial use only: no ads, no paid features, and no donations or reward programmes until Jamendo confirms (decision D13). Summary of the API terms in `docs/plan/E07-jamendo-client.md`; the rules that shape the code:
+  - **Attribution:** artist + license + "via Jamendo" (HUD and screen), and a direct link to each track's page (the "Open on Jamendo" button on the screen; a chat announcement is an optional setting, off by default).
+  - **Cache:** only search results and metadata, in memory, short expiry. Never cache audio, no offline/download feature.
+  - **No relaying:** the server sends ids and times; each client streams the audio straight from Jamendo.
+  - **Client ID:** personal, never embedded in the jar or shared (decision D2); a missing or rejected ID disables Jamendo cleanly.
 - **Radio Browser:** send our own `User-Agent` on requests.
 - **Local:** folder chosen in the settings; use tags (title, artist, cover) for the HUD.
 

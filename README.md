@@ -29,7 +29,7 @@
 - 🎼 **Free music from Jamendo**: thousands of Creative Commons tracks, with artist and license always shown.
 - 📁 **Local files**: pick a folder and the mod reads title, artist and cover art from the tags.
 - 🎚️ **Built-in volume control**: follows the game's *Jukebox/Note Blocks* sound slider.
-- 🖥️ **"Now playing" HUD**, a search screen and a shared queue.
+- 🖥️ **Point and click**: one key opens the mod's screen, where searching, playing, the shared queue and every control are buttons. No commands to learn. A "Now playing" HUD shows what's on.
 - 🔊 **Positional jukebox-style sound** *(optional, planned)*.
 
 ## 🎵 Music sources
@@ -52,7 +52,7 @@ Only legal, free sources, with no accounts or Premium subscriptions needed by pl
 | | 🎧 Personal | 👥 Shared |
 |---|---|---|
 | **Who hears it** | Only you | Every player in the world |
-| **Who's in control** | Your client | The server (`/music`) |
+| **Who's in control** | Your client | The server (from the mod's screen, or `/music` for admins) |
 | **Mod needed on the server** | No | Yes, and on every client |
 | **Radio** | You tune in | Everyone tunes in to the same live stream |
 | **Jamendo** | You play it | The server sends "track X from time T" and each client seeks to it |
@@ -83,7 +83,7 @@ flowchart LR
 - **[lavaplayer](https://github.com/lavalink-devs/lavaplayer)** decodes the audio to PCM (only the HTTP and local sources are registered).
 - The PCM feeds a custom `AudioStream`, played by a Fabric API sound instance, so it respects the game's volume settings.
 - Networking, decoding and API requests always run off the game thread: music never causes lag.
-- Jamendo searches run on the server and are cached, to save the free API quota.
+- Jamendo searches run on the server and are cached for a short time in memory, to save the free API quota. Audio is never cached or relayed: each player streams it straight from Jamendo.
 
 ## 🗺️ Roadmap
 
@@ -120,7 +120,7 @@ Jamendo support needs a free client ID, created on the [Jamendo developer portal
 
 ## 📜 Credits and license
 
-- Jamendo music: each track has its own Creative Commons license, and the mod always shows the artist and license. Non-commercial use.
+- Jamendo music: provided by [Jamendo](https://www.jamendo.com/) through its API, under the [API Terms of Use](https://devportal.jamendo.com/api_terms_of_use) (non-commercial use). Each track has its own Creative Commons license, and the mod always shows the artist, the license and a link to the track's page on Jamendo.
 - Radio stations: directory by [Radio Browser](https://www.radio-browser.info/); streams belong to their respective stations.
 - Audio decoding: [lavaplayer](https://github.com/lavalink-devs/lavaplayer).
 - Built with [Fabric](https://fabricmc.net/).

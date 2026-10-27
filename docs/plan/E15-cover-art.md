@@ -15,7 +15,7 @@ A small square image next to the title in the HUD and on each row of the results
 - **Asynchronous download** with size and time limits.
 - **Conversion to a Minecraft texture** (image → registered dynamic texture), and releasing the texture when it's no longer needed.
 - **Formats**: PNG works; JPEG and others may need converting (confirm). Station favicons in ICO/SVG → ignore them and show a default icon.
-- **Cache** in memory (and maybe on disk).
+- **Cache** in memory. A disk cache is only allowed for station logos and local covers: Jamendo's terms (clause 3.3, see E07) only allow caching that is reasonably necessary, so Jamendo covers stay in memory.
 - Local file covers: depends on decision D8 (tag library).
 
 ## New concepts

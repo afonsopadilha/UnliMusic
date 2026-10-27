@@ -46,6 +46,8 @@ The client asks the server for a Jamendo search, gets the results and can play a
 
 - Register the payloads in `src/main` (both sides need to know them), but the client handlers in `src/client`.
 - A client without the mod joining a server with the mod: confirm the server doesn't send it packets it doesn't know.
+- **The audio URL may carry the server's client ID** (see the E07 pitfall). Jamendo's terms (clause 2) say the ID must not be disclosed to third parties, and here it would reach every player. Confirm what the URL looks like; if the ID is in it, decide in this session whether that is acceptable (it is how any app that plays Jamendo on the user's device works) or whether to ask Jamendo. The server must not relay the audio to hide it (see E10).
+- `JamendoResults` must also carry the track's page URL, for the credit link (E05, E09).
 
 ## APIs
 

@@ -16,7 +16,7 @@ The server becomes "the DJ": it keeps the queue, what's playing and since when, 
 - **Automatic advance**: the server knows the duration of Jamendo tracks and moves to the next one when the current one ends. Use the server tick, or a scheduler that always goes back to the server thread.
 - **S2C packets**: `SharedPlay(source, track, positionMs, serverTime)`, `SharedPause`, `SharedStop`, `QueueUpdate`.
 - **Players joining midway** get the current state right away.
-- **Commands** with Brigadier, with suggestions (autocomplete) from results.
+- **Commands** with Brigadier, with suggestions (autocomplete) from results. They are the quickest way to test shared mode now, and later they stay for server admins and the server console; players will control shared mode from the mod's screen (E13, decision D14). So the logic lives in `SharedMusicState` and the commands only call it, so the screen's packets can reuse it.
 - **Scope (decision D4)**: recommendation = whole server first.
 - Saving the queue across server restarts: optional.
 
@@ -46,6 +46,8 @@ The server becomes "the DJ": it keeps the queue, what's playing and since when, 
 - Schedulers that run on another thread and touch the state at the same time as a command.
 - Live radio has no end: the queue only advances with skip.
 - What happens to shared music when the last player leaves? (Stop, so no quota is wasted.)
+- **The server never relays audio.** It only sends ids and times; each client streams the track straight from Jamendo (or the radio). Downloading and re-serving the audio would mean caching and redistributing content, which Jamendo's terms don't allow (see E07).
+- **Jamendo credit in shared mode**: every player sees the artist, license and "via Jamendo" in the HUD, and the link to the track's page in the mod's screen (E05, E09). No chat message by default: an optional announcement in chat is a setting (E16).
 
 ## APIs
 

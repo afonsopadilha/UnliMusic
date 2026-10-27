@@ -108,7 +108,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | # | Decision | Where | Recommendation |
 |---|---|---|---|
 | D1 | `CLAUDE.md` says Minecraft 26.1.x, but the project is on **26.3** | E00 | **Decided in E00: 26.3.** `CLAUDE.md` fixed to match `gradle.properties` |
-| D2 | Whose Jamendo client ID goes into a public release? An ID embedded in the jar is exposed, and the quota (~35,000/month) is shared by every player in the world | E07, E20 | For now: your ID in a file outside Git. Before publishing: each server owner sets their own; without an ID, the Jamendo tab is disabled with instructions |
+| D2 | Whose Jamendo client ID goes into a public release? An ID embedded in the jar is exposed, and the quota (~35,000/month) is shared by every player in the world | E07, E20 | For now: your ID in a file outside Git. Before publishing: each server owner sets their own; without an ID, the Jamendo tab is disabled with instructions. Backed by the API terms (clause 2: the ID is personal and must not be shared) |
 | D3 | Who can control the shared music? | E12 | OP by default, configurable |
 | D4 | Scope of shared mode: whole server, dimension or area? | E10 | Whole server first |
 | D5 | Personal and shared music at the same time? | E11 | Shared music pauses personal music; each player can leave shared mode |
@@ -119,6 +119,8 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D10 | The mod's license (the template came with CC0) | E20 | **Decided early, before making the repository public: MIT.** Same freedom as CC0, but copies must keep the copyright notice (credit); CC0 is not meant for software |
 | D11 | The jar is 30.9 MB, 27 MB of it lavaplayer natives for 12 platforms (32-bit Windows/Linux, ARM boards, musl…) that Minecraft hardly runs on | E20 | Repack `lavaplayer-natives` keeping only Windows x64, Linux x64/aarch64 and macOS; decide after E18 shows which systems matter |
 | D12 | PCM sample rate: the plan said 48 kHz, but lavaplayer's `COMMON_PCM_S16_LE` is 44.1 kHz | E02 | **Decided in E02: 44.1 kHz.** It is the rate of almost every MP3, Jamendo track and radio stream, so lavaplayer rarely resamples; OpenAL accepts any rate |
+| D13 | Donations (GitHub Sponsors) or platform reward programmes (CurseForge)? The Jamendo API is non-commercial only, and its terms count "any monetary compensation" as commercial, without mentioning donations | E20 | Keep them off until `licensing@jamendo.com` confirms in writing that voluntary donations to a free mod are non-commercial. Never put Jamendo features behind a payment |
+| D14 | How do players control the mod: chat commands or a clickable interface? | E05, E09, E13 | **Decided while planning: a clickable screen opened with a key is the main way.** The HUD only displays (the mouse is captured while playing), quick keys cover pause/stop, and `/music` commands stay for admins, the console and testing. The Jamendo link lives in the screen; the chat announcement is an option, off by default (E16) |
 
 ## Ideas for later (outside the plan)
 

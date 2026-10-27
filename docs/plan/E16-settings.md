@@ -17,6 +17,7 @@ A "Settings" button in the mod's screen (and, if you have Mod Menu, a "Configure
 - **Optional Mod Menu integration** (optional dependency, only active if installed).
 - **Muting Minecraft's music** while ours plays: look into `MusicManager`. It may need the project's first real mixin, a good moment to learn.
 - Options gathered from earlier entries: HUD (E05), folder (E14), country (E06), accept shared (E11), jukebox mode (E17, if it exists).
+- **Announce Jamendo tracks in chat**: a chat message with the artist, license and a clickable link to the track's page when a track starts. Off by default; the credit is already in the HUD and the link in the mod's screen (E05, E09).
 
 ## New concepts
 
