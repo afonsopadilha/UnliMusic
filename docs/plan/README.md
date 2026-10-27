@@ -131,6 +131,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 - Saved playlists and favourites.
 - A custom "speaker" block, or hooking into the game's jukebox.
 - Audio visualizer in the HUD.
+- **Song on air for radios** (a fun extra, not needed for a release): when a station sends it, show the song it is playing right now (ICY `StreamTitle`, e.g. "Artist - Title") and make it easy to get at: on the HUD (E05) and in the screen (E09), e.g. to copy it or look it up. lavaplayer does not read it (found in E04): it needs the `Icy-MetaData: 1` request header and a stream that strips the metadata blocks (every `icy-metaint` bytes) out of the audio, so our own HTTP track. Not every station sends it.
 - Our own HLS reader for packed-audio segments (`.aac`), so RTP's stations (Antena 1, 2, 3), which only offer HLS, can play (lavaplayer only reads MPEG-TS segments; found in E04).
 
 ## Glossary
