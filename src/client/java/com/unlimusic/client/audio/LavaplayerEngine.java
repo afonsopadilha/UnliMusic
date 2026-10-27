@@ -1,5 +1,10 @@
 package com.unlimusic.client.audio;
 
+import com.sedmelluq.discord.lavaplayer.container.MediaContainer;
+import com.sedmelluq.discord.lavaplayer.container.MediaContainerHints;
+import com.sedmelluq.discord.lavaplayer.container.MediaContainerProbe;
+import com.sedmelluq.discord.lavaplayer.container.MediaContainerRegistry;
+import com.sedmelluq.discord.lavaplayer.container.adts.AdtsContainerProbe;
 import com.sedmelluq.discord.lavaplayer.format.AudioDataFormat;
 import com.sedmelluq.discord.lavaplayer.format.StandardAudioDataFormats;
 import com.sedmelluq.discord.lavaplayer.natives.ConnectorNativeLibLoader;
@@ -7,16 +12,22 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.event.TrackExceptionEvent;
+import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.unlimusic.UnliMusic;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
+import org.apache.http.client.config.RequestConfig;
 
 /**
  * The client's lavaplayer: opens audio files and decodes them into PCM for {@link PcmAudioStream}.
@@ -30,6 +41,11 @@ public final class LavaplayerEngine {
 	 * rarely has to resample; OpenAL accepts any rate.
 	 */
 	public static final AudioDataFormat FORMAT = StandardAudioDataFormats.COMMON_PCM_S16_LE;
+
+	// lavaplayer's defaults are 3 s for both, too short for some stations: RFM's servers take over 6 s to
+	// send the first byte. Once connected, a stream that sends nothing for 10 s counts as dropped.
+	private static final int CONNECT_TIMEOUT_MS = 10_000;
+	private static final int READ_TIMEOUT_MS = 10_000;
 
 	// Completed by the startup thread; requests made before that simply wait for it.
 	private static final CompletableFuture<AudioPlayerManager> MANAGER = new CompletableFuture<>();
@@ -47,10 +63,14 @@ public final class LavaplayerEngine {
 	private static void start() {
 		try {
 			AudioPlayerManager manager = new DefaultAudioPlayerManager();
-			// Only local files for now; plain HTTP (radio, Jamendo) comes in E04.
+			// Local files, and plain HTTP for radio streams (and Jamendo later).
 			// Never AudioSourceManagers.registerRemoteSources: that adds YouTube and friends.
 			manager.registerSourceManager(new LocalAudioSourceManager());
+			manager.registerSourceManager(createHttpSource());
 			manager.getConfiguration().setOutputFormat(FORMAT);
+			// lavaplayer stops a player that nobody asked for audio for a minute, which is exactly what a
+			// paused channel looks like. We always destroy our players ourselves, so turn that off.
+			manager.setPlayerCleanupThreshold(TimeUnit.DAYS.toMillis(365));
 
 			// MP3, AAC, Vorbis and resampling live in a native library that is normally loaded
 			// on the first track. Loading it now makes an unsupported system fail at startup.
@@ -67,13 +87,36 @@ public final class LavaplayerEngine {
 		}
 	}
 
+	/** Plain HTTP(S) URLs: radio streams, and .pls/.m3u playlists that point to one. */
+	private static HttpAudioSourceManager createHttpSource() {
+		// lavaplayer guesses the format with the server's Content-Type first, then by scanning the first bytes
+		// with every format in turn, MP3 before AAC. Its AAC probe only claims "audio/aac", so HE-AAC stations
+		// ("audio/aacp") fall to the scan, which joins the stream mid-frame and sometimes finds a fake MP3 header.
+		List<MediaContainerProbe> probes = MediaContainer.asList().stream()
+				.map(probe -> probe instanceof AdtsContainerProbe ? new AacPlusProbe() : probe)
+				.toList();
+		HttpAudioSourceManager http = new HttpAudioSourceManager(new MediaContainerRegistry(probes));
+		// Radio Browser asks every app to say who it is; stations see the same name in their logs.
+		String version = FabricLoader.getInstance().getModContainer(UnliMusic.MOD_ID)
+				.map(mod -> mod.getMetadata().getVersion().getFriendlyString())
+				.orElse("dev");
+		http.configureBuilder(builder -> builder.setUserAgent(
+				"UnliMusic/" + version + " (Minecraft mod; +https://github.com/afonsopadilha/UnliMusic)"));
+		http.configureRequests(config -> RequestConfig.copy(config)
+				.setConnectTimeout(CONNECT_TIMEOUT_MS)
+				.setSocketTimeout(READ_TIMEOUT_MS)
+				.build());
+		return http;
+	}
+
 	/**
-	 * Opens {@code identifier} (a file path for now) and starts decoding it {@code positionMs} milliseconds in.
-	 * Exactly one of the callbacks runs, on a lavaplayer thread: {@code onReady} with a stream for the sound
-	 * engine and what lavaplayer read about the track (tags, length), or {@code onError} with the reason.
+	 * Opens {@code identifier} (a file path or an http(s) URL) and starts decoding it {@code positionMs}
+	 * milliseconds in. Exactly one of the callbacks runs, on a lavaplayer thread: {@code onReady} with a stream
+	 * for the sound engine and what lavaplayer read about the track (tags, length), or {@code onError} with the
+	 * reason. A {@code live} stream never makes the sound engine wait (see {@link PcmAudioStream}).
 	 */
-	public static void load(String identifier, long positionMs, BiConsumer<PcmAudioStream, AudioTrackInfo> onReady,
-			Consumer<Component> onError) {
+	public static void load(String identifier, long positionMs, boolean live,
+			BiConsumer<PcmAudioStream, AudioTrackInfo> onReady, Consumer<Component> onError) {
 		MANAGER.whenComplete((manager, startError) -> {
 			if (startError != null) {
 				onError.accept(Component.translatable("message.unlimusic.load_failed.engine"));
@@ -92,8 +135,15 @@ public final class LavaplayerEngine {
 					// Starting the track makes lavaplayer decode ahead into its frame buffer,
 					// so the first read() from the sound engine finds audio waiting.
 					AudioPlayer player = manager.createPlayer();
+					// A track that fails while playing (a dropped stream, a broken file) just ends;
+					// this is the only place that says why.
+					player.addListener(event -> {
+						if (event instanceof TrackExceptionEvent failure) {
+							UnliMusic.LOGGER.warn("Playback of {} failed", identifier, failure.exception);
+						}
+					});
 					player.startTrack(track, false);
-					onReady.accept(new PcmAudioStream(player), track.getInfo());
+					onReady.accept(new PcmAudioStream(player, live), track.getInfo());
 				}
 
 				@Override
@@ -113,6 +163,15 @@ public final class LavaplayerEngine {
 				}
 			});
 		});
+	}
+
+	/** lavaplayer's AAC (ADTS) probe, also claiming the Content-Types stations use for HE-AAC. */
+	private static final class AacPlusProbe extends AdtsContainerProbe {
+		@Override
+		public boolean matchesHints(MediaContainerHints hints) {
+			return super.matchesHints(hints)
+					|| "audio/aacp".equalsIgnoreCase(hints.mimeType) || "audio/x-aac".equalsIgnoreCase(hints.mimeType);
+		}
 	}
 
 	/** Stops lavaplayer's threads when the game closes. */

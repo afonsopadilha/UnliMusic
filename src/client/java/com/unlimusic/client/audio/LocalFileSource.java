@@ -17,7 +17,7 @@ public final class LocalFileSource implements MusicSource {
 	@Override
 	public void open(TrackInfo track, long positionMs, BiConsumer<PcmAudioStream, TrackInfo> onReady,
 			Consumer<Component> onError) {
-		LavaplayerEngine.load(track.location(), positionMs,
+		LavaplayerEngine.load(track.location(), positionMs, false,
 				(stream, info) -> onReady.accept(stream, withTags(track, info)), onError);
 	}
 

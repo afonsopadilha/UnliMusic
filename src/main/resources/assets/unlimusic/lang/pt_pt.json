@@ -3,8 +3,9 @@
 	"key.unlimusic.test": "Tocar música de teste",
 	"key.unlimusic.pause": "Pausar/retomar",
 	"key.unlimusic.stop": "Parar",
-	"message.unlimusic.no_test_track": "Não há música de teste. Escreve o caminho de um ficheiro de áudio em %s",
+	"message.unlimusic.no_test_track": "Não há música de teste. Escreve o caminho de um ficheiro de áudio ou o URL de uma rádio em %s",
 	"message.unlimusic.loading": "A carregar %s…",
+	"message.unlimusic.reconnecting": "Ligação perdida, a voltar a ligar a %s (tentativa %s de %s)…",
 	"message.unlimusic.playing": "A tocar %s",
 	"message.unlimusic.paused": "Em pausa",
 	"message.unlimusic.stopped": "Música parada",
@@ -12,5 +13,7 @@
 	"message.unlimusic.load_failed.engine": "o motor de áudio não arrancou (vê o log)",
 	"message.unlimusic.load_failed.not_found": "ficheiro não encontrado ou formato não suportado",
 	"message.unlimusic.load_failed.playlist": "é uma playlist, não uma faixa",
-	"message.unlimusic.load_failed.no_channel": "o motor de som do jogo não a começou (vê o log)"
+	"message.unlimusic.load_failed.no_channel": "o motor de som do jogo não a começou (vê o log)",
+	"message.unlimusic.load_failed.no_audio": "a rádio não enviou áudio",
+	"message.unlimusic.load_failed.connection_lost": "perdeu-se a ligação à rádio"
 }

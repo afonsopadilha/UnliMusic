@@ -11,8 +11,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 /**
- * What the test key plays: the song named in a dev file. The local library (E14) and the screen (E09)
- * replace it.
+ * What the test key plays: the song or radio named in a dev file. The local library (E14), the radio
+ * search (E06) and the screen (E09) replace it.
  */
 public final class TestPlayback {
 	// Lives in the game's config folder (run/config in development), which Git ignores.
@@ -26,7 +26,7 @@ public final class TestPlayback {
 	/** Game thread only: plays the test song from the start, replacing whatever was playing. */
 	public static void play(Minecraft client) {
 		Path configFile = FabricLoader.getInstance().getConfigDir().resolve(TEST_TRACK_FILE);
-		Path track = readTestTrack(configFile);
+		TrackInfo track = readTestTrack(configFile);
 		if (track == null) {
 			if (client.player != null) {
 				client.player.sendSystemMessage(
@@ -34,14 +34,18 @@ public final class TestPlayback {
 			}
 			return;
 		}
-		MusicPlayer.INSTANCE.play(TrackInfo.localFile(track));
+		MusicPlayer.INSTANCE.play(track);
 	}
 
 	/** The first line of the dev file that is not empty or a # comment, or null if there is none. */
-	private static Path readTestTrack(Path configFile) {
+	private static TrackInfo readTestTrack(Path configFile) {
 		try {
 			if (Files.notExists(configFile)) {
-				Files.writeString(configFile, "# Path of an audio file for UnliMusic's test key, on the next line.\n");
+				Files.writeString(configFile, """
+						# What UnliMusic's test key plays, on the next line: the path of an audio file,
+						# or a radio URL optionally followed by the station's name, e.g.
+						# https://example.com/stream.mp3 My Station
+						""");
 				return null;
 			}
 
@@ -51,11 +55,16 @@ public final class TestPlayback {
 				if (line.isEmpty() || line.startsWith("#")) {
 					continue;
 				}
+				if (line.startsWith("http://") || line.startsWith("https://")) {
+					// URLs have no spaces, so whatever follows the first one is the name.
+					String[] parts = line.split("\\s+", 2);
+					return TrackInfo.radio(parts[0], parts.length > 1 ? parts[1] : null);
+				}
 				// Explorer's "Copy as path" wraps the path in quotes.
 				if (line.length() > 1 && line.startsWith("\"") && line.endsWith("\"")) {
 					line = line.substring(1, line.length() - 1);
 				}
-				return Path.of(line);
+				return TrackInfo.localFile(Path.of(line));
 			}
 		} catch (IOException | RuntimeException e) {
 			UnliMusic.LOGGER.warn("Could not read {}", configFile, e);

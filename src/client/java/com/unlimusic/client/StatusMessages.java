@@ -23,7 +23,10 @@ public final class StatusMessages {
 		}
 
 		switch (music.state()) {
-			case LOADING -> player.sendOverlayMessage(Component.translatable("message.unlimusic.loading", music.track().title()));
+			case LOADING -> player.sendOverlayMessage(music.reconnectAttempt() > 0
+					? Component.translatable("message.unlimusic.reconnecting", music.track().title(),
+							music.reconnectAttempt(), MusicPlayer.MAX_RECONNECTS)
+					: Component.translatable("message.unlimusic.loading", music.track().title()));
 			case PLAYING -> player.sendOverlayMessage(Component.translatable("message.unlimusic.playing", music.track().title()));
 			case PAUSED -> player.sendOverlayMessage(Component.translatable("message.unlimusic.paused"));
 			case STOPPED -> player.sendOverlayMessage(Component.translatable("message.unlimusic.stopped"));

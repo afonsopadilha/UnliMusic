@@ -121,6 +121,8 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D12 | PCM sample rate: the plan said 48 kHz, but lavaplayer's `COMMON_PCM_S16_LE` is 44.1 kHz | E02 | **Decided in E02: 44.1 kHz.** It is the rate of almost every MP3, Jamendo track and radio stream, so lavaplayer rarely resamples; OpenAL accepts any rate |
 | D13 | Donations (GitHub Sponsors) or platform reward programmes (CurseForge)? The Jamendo API is non-commercial only, and its terms count "any monetary compensation" as commercial, without mentioning donations | E20 | Keep them off until `licensing@jamendo.com` confirms in writing that voluntary donations to a free mod are non-commercial. Never put Jamendo features behind a payment |
 | D14 | How do players control the mod: chat commands or a clickable interface? | E05, E09, E13 | **Decided while planning: a clickable screen opened with a key is the main way.** The HUD only displays (the mouse is captured while playing), quick keys cover pause/stop, and `/music` commands stay for admins, the console and testing. The Jamendo link lives in the screen; the chat announcement is an option, off by default (E16) |
+| D15 | What does a radio do when paused, and when its stream drops? | E04 | **Decided in E04: pausing stops the sound and connection, resuming tunes in again live** (also after more than 3 s in the pause menu). A drop reconnects after 1, 2, 4, 8, 16 s, then gives up with a chat message; only a station that has already played is retried |
+| D16 | Radio Browser gives `url` and `url_resolved`: which one to play? | E06 | `url`: it may be a playlist or a redirect that picks a working server each time (lavaplayer follows both), while `url_resolved` pins one edge (in E04 one of RFM's delivered 0.67× real time). Skip HLS (`hls=1`) until tested |
 
 ## Ideas for later (outside the plan)
 
@@ -151,3 +153,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 - **Screen**: a game screen/window (menu, inventory, our mod's screen).
 - **`include` (Loom)**: puts a jar inside the mod's jar (jar-in-jar). It is not transitive.
 - **Integrated server**: in singleplayer there is also a server, running inside your game. That's why commands and packets work when playing alone.
+- **ICY / Shoutcast / Icecast**: how online radio streams work: a never-ending HTTP response, with the station's name in `icy-*` headers (and, if asked, the song on air mixed into the audio).
+- **Prebuffer / rebuffer**: collecting a few seconds of audio before playing (or after running dry), so a stream that arrives in real time has slack for a slow network.
+- **Exponential backoff**: waiting twice as long after each failed attempt (1 s, 2 s, 4 s…), so a server that is down is not hammered.
+- **AAC / HE-AAC (AAC+)**: the other common radio codec besides MP3. HE-AAC adds a layer (SBR) that rebuilds the treble, for good sound at 48–64 kbps; stations send it in ADTS frames as `audio/aacp`.

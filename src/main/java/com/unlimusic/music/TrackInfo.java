@@ -29,6 +29,12 @@ public record TrackInfo(Source source, String location, String title, String art
 		return new TrackInfo(Source.LOCAL, file.toString(), file.getFileName().toString(), null, 0, null, null);
 	}
 
+	/** A radio station's stream (or a .pls/.m3u playlist pointing to one); without a name, its address stands in. */
+	public static TrackInfo radio(String url, String name) {
+		String title = name != null && !name.isBlank() ? name : url;
+		return new TrackInfo(Source.RADIO, url, title, null, 0, null, null);
+	}
+
 	/** A radio has no end and no fixed position: pausing it means coming back to what is live. */
 	public boolean isLive() {
 		return source == Source.RADIO;

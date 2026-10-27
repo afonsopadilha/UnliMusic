@@ -25,6 +25,12 @@ import net.minecraft.network.chat.Component;
  * PLAYING   --pause-->                PAUSED
  * PAUSED    --resume-->               PLAYING
  * any state --stop, end of track, /stopsound, leaving the world-->  STOPPED
+ *
+ * radio only:
+ * PLAYING   --stream dropped-->       LOADING   (waits 1 s, 2 s, 4 s... between attempts)
+ * LOADING   --reconnect failed-->     LOADING, or ERROR after the last attempt
+ * PAUSED    --resume-->               LOADING   (tunes in again: what is live now, not where it paused)
+ * PLAYING   --pause menu over 3 s-->  LOADING   (same, when the game unpauses)
  * </pre>
  *
  * <p>Game thread only. What happens elsewhere (lavaplayer opening a track) comes back through
@@ -56,6 +62,16 @@ public final class MusicPlayer {
 			State.PAUSED, EnumSet.of(State.LOADING, State.PLAYING, State.STOPPED),
 			State.ERROR, EnumSet.of(State.LOADING, State.STOPPED));
 
+	// Reconnecting a dropped radio: attempt n waits 2^(n-1) seconds first, so a station that is down
+	// is asked five times in about half a minute and then left alone.
+	public static final int MAX_RECONNECTS = 5;
+	private static final long FIRST_RECONNECT_WAIT_MS = 1_000;
+	// A station that plays this long counts as working again, and gets all its attempts back.
+	private static final long STABLE_MS = 60_000;
+	// A radio left behind by the pause menu for longer than this tunes in again on unpause; a quick
+	// look at the menu just carries on, a few seconds late, instead of costing a reconnect.
+	private static final long LIVE_RESYNC_MS = 3_000;
+
 	private final List<Listener> listeners = new ArrayList<>();
 
 	private State state = State.STOPPED;
@@ -68,6 +84,16 @@ public final class MusicPlayer {
 
 	// Bumped by every load and stop: a track that finishes loading with an older number is no longer wanted.
 	private int loadId;
+
+	// Which reconnect attempt is waiting or loading (0 = not reconnecting), and when the next one starts
+	// (System.nanoTime(), or 0 when none is waiting).
+	private int reconnectAttempt;
+	private long reconnectAtNanos;
+	// True once the current radio has played: from then on a failed load is retried instead of reported.
+	private boolean livePlayed;
+
+	// When singleplayer's pause menu paused a playing radio (System.nanoTime()), or 0.
+	private long gamePausedNanos;
 
 	// lavaplayer decodes seconds ahead of what is heard, so we time what is heard ourselves.
 	private long positionMs;        // where the clock stood when it last stopped
@@ -99,6 +125,11 @@ public final class MusicPlayer {
 		return positionMs + (System.nanoTime() - clockStartNanos) / 1_000_000;
 	}
 
+	/** While a dropped radio is being reconnected (state LOADING), which attempt it is (1 to {@link #MAX_RECONNECTS}); otherwise 0. */
+	public int reconnectAttempt() {
+		return reconnectAttempt;
+	}
+
 	public void addListener(Listener listener) {
 		listeners.add(listener);
 	}
@@ -109,6 +140,8 @@ public final class MusicPlayer {
 
 	/** Plays {@code track} from {@code positionMs}, replacing whatever was playing or loading. */
 	public void play(TrackInfo track, long positionMs) {
+		reconnectAttempt = 0;
+		livePlayed = false;
 		load(track, positionMs, "play");
 	}
 
@@ -126,18 +159,30 @@ public final class MusicPlayer {
 	/**
 	 * Pauses our OpenAL channel in place, like the pause menu does (decision D6). Stopping the sound and
 	 * opening the track again on resume was tried too: lavaplayer's seek in VBR MP3s lands seconds early.
+	 *
+	 * <p>A radio is the exception: paused in place it would resume minutes behind, so its sound and
+	 * connection stop, and resuming tunes in again.
 	 */
 	public void pause() {
 		if (state != State.PLAYING) {
 			return;
 		}
 		stopClock();
-		setChannelPaused(true);
+		if (track.isLive()) {
+			stopSound();
+		} else {
+			setChannelPaused(true);
+		}
 		setState(State.PAUSED, "at " + positionMs + " ms");
 	}
 
 	public void resume() {
 		if (state != State.PAUSED) {
+			return;
+		}
+		if (track.isLive()) {
+			reconnectAttempt = 0;
+			load(track, 0, "resume live");
 			return;
 		}
 		// The sound is still in the engine, only silent. The clock restarts on the next tick.
@@ -147,7 +192,7 @@ public final class MusicPlayer {
 
 	/** Called by {@code SoundEngineMixin} right after the game resumed every channel: ours stays paused. */
 	public void onEngineResumed() {
-		if (state == State.PAUSED) {
+		if (state == State.PAUSED && sound != null) {
 			setChannelPaused(true);
 		}
 	}
@@ -165,6 +210,9 @@ public final class MusicPlayer {
 		stopSound();
 		track = null;
 		error = null;
+		reconnectAttempt = 0;
+		reconnectAtNanos = 0;
+		livePlayed = false;
 		resetClock(0);
 		setState(State.STOPPED, reason);
 	}
@@ -176,8 +224,37 @@ public final class MusicPlayer {
 			boolean ended = stream.hasEnded();
 			sound = null;
 			stream = null;
-			stop(ended ? "track ended" : "sound stopped by the game");
+			if (ended && track.isLive()) {
+				// A radio never runs out: its stream dropped (lavaplayer logged why).
+				reconnectOrFail(Component.translatable("message.unlimusic.load_failed.connection_lost"));
+			} else {
+				stop(ended ? "track ended" : "sound stopped by the game");
+			}
 			return;
+		}
+
+		if (reconnectAtNanos != 0 && System.nanoTime() - reconnectAtNanos >= 0) {
+			reconnectAtNanos = 0;
+			load(track, 0, "reconnect " + reconnectAttempt + "/" + MAX_RECONNECTS);
+			return;
+		}
+		if (reconnectAttempt > 0 && state == State.PLAYING && positionMs() >= STABLE_MS) {
+			UnliMusic.LOGGER.info("Music: {} is stable again", track.title());
+			reconnectAttempt = 0;
+		}
+
+		// The pause menu pauses every channel in place, ours too: right for a file, stale for a radio.
+		boolean liveAndPlaying = state == State.PLAYING && track.isLive();
+		if (client.isPaused() && liveAndPlaying && gamePausedNanos == 0) {
+			gamePausedNanos = System.nanoTime();
+		} else if (!client.isPaused() && gamePausedNanos != 0) {
+			long pausedMs = (System.nanoTime() - gamePausedNanos) / 1_000_000;
+			gamePausedNanos = 0;
+			if (liveAndPlaying && pausedMs > LIVE_RESYNC_MS) {
+				reconnectAttempt = 0;
+				load(track, 0, "back to live after " + pausedMs + " ms in the pause menu");
+				return;
+			}
 		}
 
 		// Singleplayer's pause menu pauses our channel too, so the clock stops with it.
@@ -194,13 +271,15 @@ public final class MusicPlayer {
 	private void load(TrackInfo track, long startMs, String reason) {
 		MusicSource source = switch (track.source()) {
 			case LOCAL -> LocalFileSource.INSTANCE;
-			case RADIO, JAMENDO -> throw new UnsupportedOperationException(track.source() + " is not playable yet (E04, E07)");
+			case RADIO -> RadioSource.INSTANCE;
+			case JAMENDO -> throw new UnsupportedOperationException(track.source() + " is not playable yet (E07)");
 		};
 
 		// Whatever was playing stops now, so two tracks can never overlap.
 		stopSound();
 		this.track = track;
 		error = null;
+		reconnectAtNanos = 0;
 		resetClock(startMs);
 		int id = ++loadId;
 		setState(State.LOADING, reason + " " + track.title() + " at " + startMs + " ms");
@@ -230,13 +309,37 @@ public final class MusicPlayer {
 		track = info;
 		this.sound = sound;
 		this.stream = stream;
+		livePlayed = info.isLive();
 		setState(State.PLAYING, "loaded " + info.title() + " (" + result + ")");
 	}
 
 	private void onLoadFailed(int id, Component reason) {
-		if (id == loadId) {
+		if (id != loadId) {
+			return;
+		}
+		// Only a station that already played gets retried (after a drop, a pause or the pause menu): one that
+		// never worked (a wrong address, no internet from the start) is reported at once.
+		if (livePlayed) {
+			reconnectOrFail(reason);
+		} else {
 			fail(reason);
 		}
+	}
+
+	/** Waits before the next reconnect attempt, or gives up with {@code reason} after the last one. */
+	private void reconnectOrFail(Component reason) {
+		if (reconnectAttempt >= MAX_RECONNECTS) {
+			UnliMusic.LOGGER.info("Music: giving up on {} after {} attempts ({})", track.title(), MAX_RECONNECTS, reason.getString());
+			reconnectAttempt = 0;
+			fail(Component.translatable("message.unlimusic.load_failed.connection_lost"));
+			return;
+		}
+		reconnectAttempt++;
+		long waitMs = FIRST_RECONNECT_WAIT_MS << (reconnectAttempt - 1);
+		reconnectAtNanos = System.nanoTime() + waitMs * 1_000_000;
+		resetClock(0);
+		setState(State.LOADING, "reconnect " + reconnectAttempt + "/" + MAX_RECONNECTS + " in " + waitMs + " ms: "
+				+ reason.getString());
 	}
 
 	private void fail(Component reason) {

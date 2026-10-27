@@ -40,7 +40,8 @@ Only these three, all legal and with no account/Premium needed by players:
 ## Audio architecture
 
 - `MusicSource` interface: `open(track, position)` turns a track into a PCM stream; each source implements it. One client `MusicPlayer` owns the state machine (play, pause, resume, stop, end of track) for every source.
-- Pause = pause our OpenAL channel in place (decision D6); a mixin on `SoundEngine.resume()` keeps it paused when the game resumes every sound.
+- Pause = pause our OpenAL channel in place (decision D6); a mixin on `SoundEngine.resume()` keeps it paused when the game resumes every sound. A radio instead stops and tunes in again live on resume, and reconnects with growing waits when its stream drops (D15).
+- Live streams never block the sound engine's thread: they are prebuffered before the sound starts, and hand out silence while they rebuffer.
 - Decoding: **lavaplayer** (`dev.arbjerg:lavaplayer`), 16-bit little-endian PCM output format (not Opus).
 - PCM → our own `AudioStream` → sound instance via the Fabric API (`FabricSoundInstance` lets you provide an `AudioStream`). That way the volume follows a game slider (Jukebox/Records) and there's an option for positional jukebox-style sound.
 - All slow work (network, decoding, API requests) runs off the game thread. Never block in `ClientTickEvents`.
@@ -52,7 +53,7 @@ Only these three, all legal and with no account/Premium needed by players:
   - **Cache:** only search results and metadata, in memory, short expiry. Never cache audio, no offline/download feature.
   - **No relaying:** the server sends ids and times; each client streams the audio straight from Jamendo.
   - **Client ID:** personal, never embedded in the jar or shared (decision D2); a missing or rejected ID disables Jamendo cleanly.
-- **Radio Browser:** send our own `User-Agent` on requests.
+- **Radio Browser:** send our own `User-Agent` on requests (stream requests too). Play a station's `url`, not `url_resolved` (D16).
 - **Local:** folder chosen in the settings; use tags (title, artist, cover) for the HUD.
 
 ## Build
@@ -77,7 +78,7 @@ Full plan in `docs/plan/README.md`. Each entry is one work session and has its o
 **Phase 1 — Listening alone**
 - [x] E02 Play a fixed local file (lavaplayer → AudioStream → sound instance pipeline)
 - [x] E03 Playback engine: pause, stop, end of track
-- [ ] E04 Play a radio station from a fixed URL
+- [x] E04 Play a radio station from a fixed URL
 - [ ] E05 "Now playing" HUD
 
 **Phase 2 — Finding music**
