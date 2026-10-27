@@ -2,6 +2,7 @@ package com.unlimusic.client;
 
 import com.unlimusic.client.audio.LavaplayerEngine;
 import com.unlimusic.client.audio.MusicPlayer;
+import com.unlimusic.client.hud.NowPlayingHud;
 import com.unlimusic.client.input.ModKeys;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -14,6 +15,7 @@ public class UnliMusicClient implements ClientModInitializer {
 		// Runs only on the player's game, never on a dedicated server.
 		ModKeys.register();
 		StatusMessages.register();
+		NowPlayingHud.register();
 		LavaplayerEngine.startInBackground();
 
 		ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer.INSTANCE::tick);

@@ -3,6 +3,7 @@
 	"key.unlimusic.test": "Tocar música de teste",
 	"key.unlimusic.pause": "Pausar/retomar",
 	"key.unlimusic.stop": "Parar",
+	"hud.unlimusic.nothing_playing": "Nada a tocar",
 	"message.unlimusic.no_test_track": "Não há música de teste. Escreve o caminho de um ficheiro de áudio ou o URL de uma rádio em %s",
 	"message.unlimusic.loading": "A carregar %s…",
 	"message.unlimusic.reconnecting": "Ligação perdida, a voltar a ligar a %s (tentativa %s de %s)…",
