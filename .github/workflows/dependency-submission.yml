@@ -2,6 +2,10 @@
 # to GitHub's dependency graph, so Dependabot can warn about vulnerable
 # libraries. GitHub's automatic submission can't be used: it runs Gradle on
 # Java 21, and this project needs JDK 25 (gradle/gradle-daemon-jvm.properties).
+#
+# Only the `bundled` configuration is sent: those are the libraries that travel
+# inside our jar. Minecraft's own libraries (Netty, LZ4, Log4j...) and the build
+# tools are left out, because only Mojang or Fabric can update them.
 
 name: dependency submission
 on:
@@ -26,3 +30,5 @@ jobs:
         run: chmod +x ./gradlew
       - name: submit dependency graph
         uses: gradle/actions/dependency-submission@v6
+        with:
+          dependency-graph-include-configurations: '^bundled$'

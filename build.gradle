@@ -64,6 +64,10 @@ dependencies {
 		exclude group: 'commons-codec', module: 'commons-codec'
 		exclude group: 'org.jetbrains', module: 'annotations' // compile-time only
 	}
+
+	// lavaplayer asks for Jackson 2.15.2, which has known vulnerabilities, and Jackson goes inside
+	// our jar. The BOM lifts every Jackson module to the same patched 2.x release (same API).
+	bundled platform("com.fasterxml.jackson:jackson-bom:${project.jackson_version}")
 }
 
 // Loom's `include` is not transitive: on its own it would pack lavaplayer and none of the
