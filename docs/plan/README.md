@@ -112,7 +112,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D3 | Who can control the shared music? | E12 | OP by default, configurable |
 | D4 | Scope of shared mode: whole server, dimension or area? | E10 | Whole server first |
 | D5 | Personal and shared music at the same time? | E11 | Shared music pauses personal music; each player can leave shared mode |
-| D6 | Pause decoding, or stop the sound and recreate it on resume? | E03 | Decide in the session, after testing |
+| D6 | Pause decoding, or stop the sound and recreate it on resume? | E03 | **Decided in E03: pause the OpenAL channel in place.** Reopening with a seek rolled back seconds on VBR MP3s (lavaplayer's Xing seek is coarse). A mixin on `SoundEngine.resume()` keeps our channel paused when a screen closes. Radio will reopen live instead (E04) |
 | D7 | Own settings screen or a library (Cloth Config, YACL)? | E16 | Own screen, so players don't have to install more mods |
 | D8 | Tag library (e.g. jaudiotagger) for cover art and album of local files? | E14 | Start with only what lavaplayer provides |
 | D9 | Jamendo on a server without the mod? | E08 | Not supported: Jamendo needs the mod on the server (or singleplayer) |
@@ -134,6 +134,8 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 
 - **Entrypoint**: the class Fabric calls on startup. `main` runs on client and server; `client` only in the player's game.
 - **Mixin**: a way of changing Minecraft's code from the inside. Powerful but fragile; only used when the Fabric API isn't enough.
+- **Accessor** (mixin): a mixin interface that reads a private field of a Minecraft class, e.g. the sound engine's channel map.
+- **State machine**: a fixed set of states (stopped, playing, paused…) and the only transitions allowed between them.
 - **Game / server / sound / network thread**: Minecraft does several things in parallel. Slow work goes off the game thread; touching the world or the screen only happens on it.
 - **PCM**: "raw" sound, a list of numbers (samples). 16 bits, 44,100 samples per second, 2 channels = stereo.
 - **Streaming**: playing a sound in chunks (about a second at a time) instead of loading it whole. The sound engine **pulls** the next chunk by calling our `AudioStream.read()` on its own thread.

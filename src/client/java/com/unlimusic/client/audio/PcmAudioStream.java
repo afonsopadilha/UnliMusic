@@ -34,6 +34,11 @@ public final class PcmAudioStream implements AudioStream {
 	private byte[] pending;
 	private int pendingOffset;
 
+	// Written on the sound engine's thread, read on the game thread by MusicPlayer. Without volatile the
+	// game thread could keep seeing an old value cached by its CPU core, for as long as it likes.
+	private volatile long startedNanos;
+	private volatile boolean ended;
+
 	PcmAudioStream(AudioPlayer player) {
 		this.player = player;
 	}
@@ -49,6 +54,11 @@ public final class PcmAudioStream implements AudioStream {
 	 */
 	@Override
 	public ByteBuffer read(int size) throws InterruptedIOException {
+		// The engine reads the first buffers right before it starts playing them: from here on we are audible.
+		if (startedNanos == 0) {
+			startedNanos = System.nanoTime();
+		}
+
 		// lavaplayer already outputs little-endian bytes, so they are copied as they are: no byte order to set.
 		ByteBuffer buffer = ByteBuffer.allocateDirect(size);
 
@@ -56,6 +66,7 @@ public final class PcmAudioStream implements AudioStream {
 			if (pending == null) {
 				AudioFrame frame = nextFrame();
 				if (frame == null) {
+					ended = true;
 					break; // end of the track
 				}
 				pending = frame.getData();
@@ -99,6 +110,16 @@ public final class PcmAudioStream implements AudioStream {
 
 		UnliMusic.LOGGER.warn("No audio from lavaplayer for {} ms, ending the track", STALL_LIMIT_MS);
 		return null;
+	}
+
+	/** When the sound engine first asked for audio ({@link System#nanoTime}), or 0 if it has not yet. */
+	public long startedNanos() {
+		return startedNanos;
+	}
+
+	/** True once the last frame of the track was handed to the engine (it may still be playing the last seconds). */
+	public boolean hasEnded() {
+		return ended;
 	}
 
 	@Override

@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "com.unlimusic.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"SoundEngineAccessor",
+		"SoundEngineMixin",
+		"SoundManagerAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

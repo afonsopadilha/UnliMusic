@@ -11,9 +11,10 @@ import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.unlimusic.UnliMusic;
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
 
@@ -67,10 +68,12 @@ public final class LavaplayerEngine {
 	}
 
 	/**
-	 * Opens {@code file} and starts decoding it. Exactly one of the callbacks runs, on a lavaplayer
-	 * thread: {@code onReady} with a stream for the sound engine, or {@code onError} with the reason.
+	 * Opens {@code identifier} (a file path for now) and starts decoding it {@code positionMs} milliseconds in.
+	 * Exactly one of the callbacks runs, on a lavaplayer thread: {@code onReady} with a stream for the sound
+	 * engine and what lavaplayer read about the track (tags, length), or {@code onError} with the reason.
 	 */
-	public static void load(Path file, Consumer<PcmAudioStream> onReady, Consumer<Component> onError) {
+	public static void load(String identifier, long positionMs, BiConsumer<PcmAudioStream, AudioTrackInfo> onReady,
+			Consumer<Component> onError) {
 		MANAGER.whenComplete((manager, startError) -> {
 			if (startError != null) {
 				onError.accept(Component.translatable("message.unlimusic.load_failed.engine"));
@@ -78,14 +81,19 @@ public final class LavaplayerEngine {
 			}
 
 			// loadItem returns at once: reading the file's header happens on lavaplayer's loader threads.
-			manager.loadItem(file.toString(), new AudioLoadResultHandler() {
+			manager.loadItem(identifier, new AudioLoadResultHandler() {
 				@Override
 				public void trackLoaded(AudioTrack track) {
+					// A position set before the track starts is kept and applied when decoding begins,
+					// so the first frame is already at the right place (used when resuming after a pause).
+					if (positionMs > 0) {
+						track.setPosition(positionMs);
+					}
 					// Starting the track makes lavaplayer decode ahead into its frame buffer,
 					// so the first read() from the sound engine finds audio waiting.
 					AudioPlayer player = manager.createPlayer();
 					player.startTrack(track, false);
-					onReady.accept(new PcmAudioStream(player));
+					onReady.accept(new PcmAudioStream(player), track.getInfo());
 				}
 
 				@Override
@@ -100,7 +108,7 @@ public final class LavaplayerEngine {
 
 				@Override
 				public void loadFailed(FriendlyException exception) {
-					UnliMusic.LOGGER.warn("Could not load {}", file, exception);
+					UnliMusic.LOGGER.warn("Could not load {}", identifier, exception);
 					onError.accept(Component.literal(exception.getMessage()));
 				}
 			});

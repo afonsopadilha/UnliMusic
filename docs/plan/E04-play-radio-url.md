@@ -44,6 +44,7 @@ The test key plays a Portuguese radio station from a fixed URL (taken by hand fr
 ## Pitfalls
 
 - URLs that redirect; HTTPS certificates; stations that take a long time to start.
+- **Pause (found in E03):** `MusicPlayer.pause()` pauses the OpenAL channel in place (D6). For a radio that would resume stale audio, so resume must reopen the stream live (`play(track, 0)`, `TrackInfo.isLive()`).
 - **HE-AAC (AAC+)**, common on radio: confirm whether lavaplayer decodes it.
 - 48 kHz and mono stations: the output format is always ours (44.1 kHz stereo, D12), lavaplayer converts.
 - **Prebuffer before playing** (found in E02): `PcmAudioStream.read()` blocks the sound engine's thread while it waits for frames, and the engine asks for 4 s of audio as soon as the stream is attached. A stream that arrives in real time would freeze every game sound, so wait until lavaplayer has a few seconds buffered before creating the sound instance.

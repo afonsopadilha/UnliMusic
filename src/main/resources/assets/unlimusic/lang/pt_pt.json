@@ -1,10 +1,16 @@
 {
 	"key.category.unlimusic.main": "UnliMusic",
-	"key.unlimusic.test": "Teste",
-	"message.unlimusic.test_tone": "Não há música de teste, a tocar um tom de 440 Hz. Para tocar uma música, escreve o caminho dela em %s",
+	"key.unlimusic.test": "Tocar música de teste",
+	"key.unlimusic.pause": "Pausar/retomar",
+	"key.unlimusic.stop": "Parar",
+	"message.unlimusic.no_test_track": "Não há música de teste. Escreve o caminho de um ficheiro de áudio em %s",
 	"message.unlimusic.loading": "A carregar %s…",
+	"message.unlimusic.playing": "A tocar %s",
+	"message.unlimusic.paused": "Em pausa",
+	"message.unlimusic.stopped": "Música parada",
 	"message.unlimusic.load_failed": "Não foi possível tocar %s: %s",
 	"message.unlimusic.load_failed.engine": "o motor de áudio não arrancou (vê o log)",
 	"message.unlimusic.load_failed.not_found": "ficheiro não encontrado ou formato não suportado",
-	"message.unlimusic.load_failed.playlist": "é uma playlist, não uma faixa"
+	"message.unlimusic.load_failed.playlist": "é uma playlist, não uma faixa",
+	"message.unlimusic.load_failed.no_channel": "o motor de som do jogo não a começou (vê o log)"
 }

@@ -1,10 +1,16 @@
 {
 	"key.category.unlimusic.main": "UnliMusic",
-	"key.unlimusic.test": "Test",
-	"message.unlimusic.test_tone": "No test song set, playing a 440 Hz tone. To play a song, write its path in %s",
+	"key.unlimusic.test": "Play test song",
+	"key.unlimusic.pause": "Pause/resume",
+	"key.unlimusic.stop": "Stop",
+	"message.unlimusic.no_test_track": "No test song set. Write the path of an audio file in %s",
 	"message.unlimusic.loading": "Loading %s…",
+	"message.unlimusic.playing": "Playing %s",
+	"message.unlimusic.paused": "Paused",
+	"message.unlimusic.stopped": "Music stopped",
 	"message.unlimusic.load_failed": "Could not play %s: %s",
 	"message.unlimusic.load_failed.engine": "the audio engine failed to start (see the log)",
 	"message.unlimusic.load_failed.not_found": "file not found or format not supported",
-	"message.unlimusic.load_failed.playlist": "it is a playlist, not a single track"
+	"message.unlimusic.load_failed.playlist": "it is a playlist, not a single track",
+	"message.unlimusic.load_failed.no_channel": "the game's sound engine did not start it (see the log)"
 }
