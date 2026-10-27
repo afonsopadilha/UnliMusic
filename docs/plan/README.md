@@ -122,7 +122,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D13 | Donations (GitHub Sponsors) or platform reward programmes (CurseForge)? The Jamendo API is non-commercial only, and its terms count "any monetary compensation" as commercial, without mentioning donations | E20 | Keep them off until `licensing@jamendo.com` confirms in writing that voluntary donations to a free mod are non-commercial. Never put Jamendo features behind a payment |
 | D14 | How do players control the mod: chat commands or a clickable interface? | E05, E09, E13 | **Decided while planning: a clickable screen opened with a key is the main way.** The HUD only displays (the mouse is captured while playing), quick keys cover pause/stop, and `/music` commands stay for admins, the console and testing. The Jamendo link lives in the screen; the chat announcement is an option, off by default (E16) |
 | D15 | What does a radio do when paused, and when its stream drops? | E04 | **Decided in E04: pausing stops the sound and connection, resuming tunes in again live** (also after more than 3 s in the pause menu). A drop reconnects after 1, 2, 4, 8, 16 s, then gives up with a chat message; only a station that has already played is retried |
-| D16 | Radio Browser gives `url` and `url_resolved`: which one to play? | E06 | `url`: it may be a playlist or a redirect that picks a working server each time (lavaplayer follows both), while `url_resolved` pins one edge (in E04 one of RFM's delivered 0.67× real time). Skip HLS (`hls=1`) until tested |
+| D16 | Radio Browser gives `url` and `url_resolved`: which one to play? | E06 | `url`: it may be a playlist or a redirect that picks a working server each time (lavaplayer follows both), while `url_resolved` pins one edge (in E04 one of RFM's delivered 0.67× real time). Skip HLS (`hls=1`): lavaplayer only reads MPEG-TS segments, and RTP's are packed AAC |
 
 ## Ideas for later (outside the plan)
 
@@ -131,6 +131,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 - Saved playlists and favourites.
 - A custom "speaker" block, or hooking into the game's jukebox.
 - Audio visualizer in the HUD.
+- Our own HLS reader for packed-audio segments (`.aac`), so RTP's stations (Antena 1, 2, 3), which only offer HLS, can play (lavaplayer only reads MPEG-TS segments; found in E04).
 
 ## Glossary
 
