@@ -1,0 +1,28 @@
+# Send the full Gradle dependency tree (lavaplayer and everything it pulls in)
+# to GitHub's dependency graph, so Dependabot can warn about vulnerable
+# libraries. GitHub's automatic submission can't be used: it runs Gradle on
+# Java 21, and this project needs JDK 25 (gradle/gradle-daemon-jvm.properties).
+
+name: dependency submission
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: submit dependency graph
+        uses: gradle/actions/dependency-submission@v6
