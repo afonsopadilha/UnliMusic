@@ -124,6 +124,8 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 | D15 | What does a radio do when paused, and when its stream drops? | E04 | **Decided in E04: pausing stops the sound and connection, resuming tunes in again live** (also after more than 3 s in the pause menu). A drop reconnects after 1, 2, 4, 8, 16 s, then gives up with a chat message; only a station that has already played is retried |
 | D16 | Radio Browser gives `url` and `url_resolved`: which one to play? | E06 | `url`: it may be a playlist or a redirect that picks a working server each time (lavaplayer follows both), while `url_resolved` pins one edge (in E04 one of RFM's delivered 0.67× real time). Skip HLS (`hls=1`): lavaplayer only reads MPEG-TS segments, and RTP's are packed AAC |
 
+| D17 | What does the HUD show, and where does the rest of the feedback go? | E05 | **Decided in E05: the HUD shows only while a track loads, plays or is paused**, in the top-left corner (a position setting is left for E16), drawn under the chat and the player list and hidden by F1. The messages above the hotbar ("Playing…", "Paused") are gone; a failure hides the HUD and goes to chat, where it can be read |
+
 ## Ideas for later (outside the plan)
 
 - Server-side music folder served to clients (already mentioned in `CLAUDE.md`).
@@ -158,4 +160,7 @@ Each one is made in the entry listed; the recommendation is only a starting poin
 - **ICY / Shoutcast / Icecast**: how online radio streams work: a never-ending HTTP response, with the station's name in `icy-*` headers (and, if asked, the song on air mixed into the audio).
 - **Prebuffer / rebuffer**: collecting a few seconds of audio before playing (or after running dry), so a stream that arrives in real time has slack for a slow network.
 - **Exponential backoff**: waiting twice as long after each failed attempt (1 s, 2 s, 4 s…), so a server that is down is not hammered.
+- **Render state extraction**: in 26.x the GUI is drawn in two phases. While "extracting", code like our HUD only lists what to draw (`GuiGraphicsExtractor` → `GuiRenderState`); the game draws the list afterwards. Something listed later that overlaps something earlier ends up on top of it.
+- **GUI scale**: the "GUI Scale" video option. HUD coordinates are in GUI pixels; at scale 3 each one is 3×3 screen pixels.
+- **Scissor**: a rectangle that cuts off anything drawn outside it, used to make long text scroll inside a window.
 - **AAC / HE-AAC (AAC+)**: the other common radio codec besides MP3. HE-AAC adds a layer (SBR) that rebuilds the treble, for good sound at 48–64 kbps; stations send it in ADTS frames as `audio/aacp`.

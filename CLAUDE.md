@@ -79,7 +79,7 @@ Full plan in `docs/plan/README.md`. Each entry is one work session and has its o
 - [x] E02 Play a fixed local file (lavaplayer → AudioStream → sound instance pipeline)
 - [x] E03 Playback engine: pause, stop, end of track
 - [x] E04 Play a radio station from a fixed URL
-- [ ] E05 "Now playing" HUD
+- [x] E05 "Now playing" HUD
 
 **Phase 2 — Finding music**
 - [ ] E06 Radio search (Radio Browser)

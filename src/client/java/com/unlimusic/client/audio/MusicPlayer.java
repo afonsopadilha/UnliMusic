@@ -47,7 +47,7 @@ public final class MusicPlayer {
 		ERROR
 	}
 
-	/** Told after every change of state, on the game thread. The HUD (E05) will be one of them. */
+	/** Told after every change of state, on the game thread. The HUD needs no listener: it reads the state every frame. */
 	@FunctionalInterface
 	public interface Listener {
 		void onChange(MusicPlayer music);

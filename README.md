@@ -92,7 +92,7 @@ The full plan, with one sheet per work session, lives in [`docs/plan/`](docs/pla
 | Phase | Goal | Entries | Status |
 |---|---|---|:---:|
 | 0 · Foundations | Clean project, lavaplayer bundled in the jar | E00–E01 | ✅ |
-| 1 · Listening alone | Play files and radio, pause, HUD | E02–E05 | ⏳ |
+| 1 · Listening alone | Play files and radio, pause, HUD | E02–E05 | ✅ |
 | 2 · Finding music | Radio search, Jamendo, networking, main screen | E06–E09 | ⬜ |
 | 3 · Listening together | Shared mode, sync, permissions, queue | E10–E13 | ⬜ |
 | 4 · Local files & settings | Local library, cover art, configuration | E14–E16 | ⬜ |
