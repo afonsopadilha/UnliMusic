@@ -25,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import org.apache.http.client.config.RequestConfig;
 
@@ -96,12 +95,8 @@ public final class LavaplayerEngine {
 				.map(probe -> probe instanceof AdtsContainerProbe ? new AacPlusProbe() : probe)
 				.toList();
 		HttpAudioSourceManager http = new HttpAudioSourceManager(new MediaContainerRegistry(probes));
-		// Radio Browser asks every app to say who it is; stations see the same name in their logs.
-		String version = FabricLoader.getInstance().getModContainer(UnliMusic.MOD_ID)
-				.map(mod -> mod.getMetadata().getVersion().getFriendlyString())
-				.orElse("dev");
-		http.configureBuilder(builder -> builder.setUserAgent(
-				"UnliMusic/" + version + " (Minecraft mod; +https://github.com/afonsopadilha/UnliMusic)"));
+		// Stations see the same name in their logs as Radio Browser does.
+		http.configureBuilder(builder -> builder.setUserAgent(UnliMusic.USER_AGENT));
 		http.configureRequests(config -> RequestConfig.copy(config)
 				.setConnectTimeout(CONNECT_TIMEOUT_MS)
 				.setSocketTimeout(READ_TIMEOUT_MS)

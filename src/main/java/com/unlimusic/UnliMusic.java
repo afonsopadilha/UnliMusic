@@ -1,6 +1,7 @@
 package com.unlimusic;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.resources.Identifier;
 
@@ -14,6 +15,15 @@ public class UnliMusic implements ModInitializer {
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+	/**
+	 * How the mod introduces itself to web services and radio stations. Radio Browser asks every app for a
+	 * name and version, so that its maintainer can see who uses the API and get in touch.
+	 */
+	public static final String USER_AGENT = "UnliMusic/" + FabricLoader.getInstance().getModContainer(MOD_ID)
+			.map(mod -> mod.getMetadata().getVersion().getFriendlyString())
+			.orElse("dev")
+			+ " (Minecraft mod; +https://github.com/afonsopadilha/UnliMusic)";
 
 	@Override
 	public void onInitialize() {
