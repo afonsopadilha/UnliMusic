@@ -13,5 +13,11 @@
 	"message.unlimusic.load_failed.playlist": "é uma playlist, não uma faixa",
 	"message.unlimusic.load_failed.no_channel": "o motor de som do jogo não a começou (vê o log)",
 	"message.unlimusic.load_failed.no_audio": "a rádio não enviou áudio",
-	"message.unlimusic.load_failed.connection_lost": "perdeu-se a ligação à rádio"
+	"message.unlimusic.load_failed.connection_lost": "perdeu-se a ligação à rádio",
+	"command.unlimusic.radios.bad_country": "\"%s\" não é um código de país: usa duas letras, por exemplo PT",
+	"command.unlimusic.radios.in_country": "em %s",
+	"command.unlimusic.radios.searching": "A procurar rádios %s…",
+	"command.unlimusic.radios.header": "Rádios %s, das mais ouvidas para as menos:",
+	"command.unlimusic.radios.none": "Não encontrei rádios %s.",
+	"command.unlimusic.radios.offline": "Não foi possível ligar à Radio Browser. Verifica a ligação à internet e tenta outra vez."
 }

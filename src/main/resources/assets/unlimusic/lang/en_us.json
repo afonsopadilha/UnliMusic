@@ -13,5 +13,11 @@
 	"message.unlimusic.load_failed.playlist": "it is a playlist, not a single track",
 	"message.unlimusic.load_failed.no_channel": "the game's sound engine did not start it (see the log)",
 	"message.unlimusic.load_failed.no_audio": "the station sent no audio",
-	"message.unlimusic.load_failed.connection_lost": "lost the connection to the station"
+	"message.unlimusic.load_failed.connection_lost": "lost the connection to the station",
+	"command.unlimusic.radios.bad_country": "\"%s\" is not a country code: use two letters, e.g. PT",
+	"command.unlimusic.radios.in_country": "in %s",
+	"command.unlimusic.radios.searching": "Searching for radios %s…",
+	"command.unlimusic.radios.header": "Radios %s, most listened first:",
+	"command.unlimusic.radios.none": "No radios found %s.",
+	"command.unlimusic.radios.offline": "Could not reach Radio Browser. Check your internet connection and try again."
 }

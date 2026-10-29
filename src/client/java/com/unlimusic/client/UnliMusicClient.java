@@ -1,6 +1,7 @@
 package com.unlimusic.client;
 
 import com.unlimusic.client.audio.LavaplayerEngine;
+import com.unlimusic.client.command.UnliMusicCommand;
 import com.unlimusic.client.audio.MusicPlayer;
 import com.unlimusic.client.hud.NowPlayingHud;
 import com.unlimusic.client.input.ModKeys;
@@ -16,6 +17,7 @@ public class UnliMusicClient implements ClientModInitializer {
 		ModKeys.register();
 		StatusMessages.register();
 		NowPlayingHud.register();
+		UnliMusicCommand.register();
 		LavaplayerEngine.startInBackground();
 
 		ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer.INSTANCE::tick);
