@@ -19,5 +19,7 @@
 	"command.unlimusic.radios.searching": "A procurar rádios %s…",
 	"command.unlimusic.radios.header": "Rádios %s, das mais ouvidas para as menos:",
 	"command.unlimusic.radios.none": "Não encontrei rádios %s.",
-	"command.unlimusic.radios.offline": "Não foi possível ligar à Radio Browser. Verifica a ligação à internet e tenta outra vez."
+	"command.unlimusic.radios.offline": "Não foi possível ligar à Radio Browser. Verifica a ligação à internet e tenta outra vez.",
+	"command.unlimusic.radios.click_to_play": "Clica para tocar",
+	"command.unlimusic.radios.unknown_station": "Essa rádio já não está na lista. Pesquisa outra vez e escolhe-a daí."
 }

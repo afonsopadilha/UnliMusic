@@ -6,16 +6,21 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.unlimusic.UnliMusic;
+import com.unlimusic.client.audio.MusicPlayer;
 import com.unlimusic.radio.RadioBrowserClient;
 import com.unlimusic.radio.RadioBrowserClient.SearchBy;
 import com.unlimusic.radio.RadioStation;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
@@ -27,6 +32,16 @@ public final class UnliMusicCommand {
 	private static final int RESULTS = 10;
 	// The chat is about 50 characters wide at the default size: longer names would wrap onto a second line.
 	private static final int MAX_NAME_LENGTH = 40;
+	// Some stations list twenty tags or more; the first few say enough.
+	private static final int MAX_TAGS = 6;
+	// Stations shown in chat by id, so that clicking a line can find what to play. Only touched on the game
+	// thread. The oldest are forgotten past the limit, by which time their lines have scrolled far away.
+	private static final Map<String, RadioStation> SHOWN = new LinkedHashMap<>() {
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<String, RadioStation> eldest) {
+			return size() > 200;
+		}
+	};
 
 	private UnliMusicCommand() {
 	}
@@ -39,7 +54,12 @@ public final class UnliMusicCommand {
 						.then(argument("country", StringArgumentType.word())
 								.suggests((context, builder) -> SharedSuggestionProvider.suggest(Locale.getISOCountries(), builder))
 								.executes(context -> searchByCountry(context.getSource(),
-										StringArgumentType.getString(context, "country")))))));
+										StringArgumentType.getString(context, "country"))))
+						// What clicking a result runs. A literal wins over the country argument when the
+						// input is exactly "play", and no country code is four letters long.
+						.then(literal("play").then(argument("station", StringArgumentType.word())
+								.executes(context -> play(context.getSource(),
+										StringArgumentType.getString(context, "station"))))))));
 	}
 
 	private static int searchByCountry(FabricClientCommandSource source, String country) {
@@ -74,16 +94,55 @@ public final class UnliMusicCommand {
 		}
 		source.sendFeedback(Component.translatable("command.unlimusic.radios.header", what).withStyle(ChatFormatting.YELLOW));
 		for (int i = 0; i < stations.size(); i++) {
-			source.sendFeedback(resultLine(i + 1, stations.get(i)));
+			RadioStation station = stations.get(i);
+			SHOWN.put(station.uuid(), station);
+			source.sendFeedback(resultLine(i + 1, station));
 		}
 	}
 
-	/** " 1. TSF Rádio Notícias · MP3 128 kbps" */
+	/**
+	 * " 1. TSF Rádio Notícias · MP3 128 kbps", which plays the station when clicked and shows its details
+	 * under the mouse.
+	 */
 	private static MutableComponent resultLine(int number, RadioStation station) {
-		String details = station.bitrate() > 0 ? station.codec() + " " + station.bitrate() + " kbps" : station.codec();
+		// The click can only run a command, so it carries the station's id, not the station itself;
+		// a URL could also be longer than a command is allowed to be.
+		ClickEvent click = new ClickEvent.RunCommand("/unlimusic radios play " + station.uuid());
+		HoverEvent hover = new HoverEvent.ShowText(details(station));
 		return Component.literal(" " + number + ". ").withStyle(ChatFormatting.GRAY)
 				.append(Component.literal(shorten(station.name())).withStyle(ChatFormatting.WHITE))
-				.append(Component.literal(" · " + details).withStyle(ChatFormatting.DARK_GRAY));
+				.append(Component.literal(" · " + format(station)).withStyle(ChatFormatting.DARK_GRAY))
+				.withStyle(style -> style.withClickEvent(click).withHoverEvent(hover));
+	}
+
+	/** The full name, country, format and tags, then what a click does. */
+	private static Component details(RadioStation station) {
+		MutableComponent text = Component.literal(station.name()).withStyle(ChatFormatting.YELLOW);
+		String country = station.countryCode() != null ? station.countryCode() + " · " : "";
+		text.append(Component.literal("\n" + country + format(station)).withStyle(ChatFormatting.GRAY));
+		if (!station.tags().isEmpty()) {
+			List<String> tags = station.tags().subList(0, Math.min(MAX_TAGS, station.tags().size()));
+			text.append(Component.literal("\n" + String.join(", ", tags)).withStyle(ChatFormatting.GRAY));
+		}
+		return text.append(Component.literal("\n").append(Component.translatable("command.unlimusic.radios.click_to_play"))
+				.withStyle(ChatFormatting.GREEN));
+	}
+
+	private static String format(RadioStation station) {
+		return station.bitrate() > 0 ? station.codec() + " " + station.bitrate() + " kbps" : station.codec();
+	}
+
+	/** Game thread (as every command): plays a station listed by an earlier search, and counts the click. */
+	private static int play(FabricClientCommandSource source, String uuid) {
+		RadioStation station = SHOWN.get(uuid);
+		if (station == null) {
+			// A line from before the game was restarted, or from long ago.
+			source.sendError(Component.translatable("command.unlimusic.radios.unknown_station"));
+			return 0;
+		}
+		MusicPlayer.INSTANCE.play(station.toTrack());
+		RadioBrowserClient.INSTANCE.countClick(station);
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static String shorten(String name) {

@@ -19,5 +19,7 @@
 	"command.unlimusic.radios.searching": "Searching for radios %s…",
 	"command.unlimusic.radios.header": "Radios %s, most listened first:",
 	"command.unlimusic.radios.none": "No radios found %s.",
-	"command.unlimusic.radios.offline": "Could not reach Radio Browser. Check your internet connection and try again."
+	"command.unlimusic.radios.offline": "Could not reach Radio Browser. Check your internet connection and try again.",
+	"command.unlimusic.radios.click_to_play": "Click to play",
+	"command.unlimusic.radios.unknown_station": "That station is no longer in the list. Search again and pick it from there."
 }
