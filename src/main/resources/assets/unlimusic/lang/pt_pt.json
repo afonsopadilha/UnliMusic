@@ -24,5 +24,15 @@
 	"command.unlimusic.radios.none": "Não encontrei rádios %s.",
 	"command.unlimusic.radios.offline": "Não foi possível ligar à Radio Browser. Verifica a ligação à internet e tenta outra vez.",
 	"command.unlimusic.radios.click_to_play": "Clica para tocar",
-	"command.unlimusic.radios.unknown_station": "Essa rádio já não está na lista. Pesquisa outra vez e escolhe-a daí."
+	"command.unlimusic.radios.unknown_station": "Essa rádio já não está na lista. Pesquisa outra vez e escolhe-a daí.",
+	"command.unlimusic.jamendo.too_short": "Escreve pelo menos %s letras.",
+	"command.unlimusic.jamendo.searching": "A procurar “%s” no Jamendo…",
+	"command.unlimusic.jamendo.header": "Músicas do Jamendo para “%s” (clica numa para abrir a página):",
+	"command.unlimusic.jamendo.none": "Não encontrei músicas do Jamendo para “%s”.",
+	"command.unlimusic.jamendo.via": "via Jamendo",
+	"command.unlimusic.jamendo.click_to_open": "Clica para abrir no Jamendo",
+	"command.unlimusic.jamendo.no_client_id": "O Jamendo está desligado neste servidor: o dono não definiu um client ID do Jamendo.",
+	"command.unlimusic.jamendo.rejected": "O Jamendo recusou o client ID deste servidor. O dono do servidor tem de o verificar.",
+	"command.unlimusic.jamendo.rate_limited": "O Jamendo está a receber demasiadas pesquisas deste servidor. Tenta mais tarde.",
+	"command.unlimusic.jamendo.offline": "Não foi possível ligar ao Jamendo. Verifica a ligação à internet e tenta outra vez."
 }

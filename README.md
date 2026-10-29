@@ -118,6 +118,16 @@ On Windows, use `gradlew.bat` instead of `./gradlew`. To set up your IDE, see th
 
 Jamendo support needs a free client ID, created on the [Jamendo developer portal](https://devportal.jamendo.com/). It goes in a server config file that is **never** committed to Git. Without it the mod still works, just without Jamendo.
 
+The file is created empty the first time a world (or a dedicated server) starts: `config/unlimusic-server.json`, or `run/config/unlimusic-server.json` with `runClient`. Put the ID between the quotes and reopen the world:
+
+```json
+{
+  "jamendoClientId": "your client ID"
+}
+```
+
+The client ID is personal (Jamendo's API terms): each server owner uses their own, and it is never shown in chat or written to the log.
+
 ## 📜 Credits and license
 
 - Jamendo music: provided by [Jamendo](https://www.jamendo.com/) through its API, under the [API Terms of Use](https://devportal.jamendo.com/api_terms_of_use) (non-commercial use). Each track has its own Creative Commons license, and the mod always shows the artist, the license and a link to the track's page on Jamendo.

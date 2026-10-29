@@ -1,6 +1,10 @@
 package com.unlimusic;
 
+import com.unlimusic.command.MusicCommand;
+import com.unlimusic.config.ServerConfig;
+
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.resources.Identifier;
@@ -32,6 +36,10 @@ public class UnliMusic implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Hello Fabric world!");
+
+		// Runs on dedicated servers and on the integrated server of each singleplayer world, before it loads.
+		ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.load());
+		MusicCommand.register();
 	}
 
 	public static Identifier id(String path) {

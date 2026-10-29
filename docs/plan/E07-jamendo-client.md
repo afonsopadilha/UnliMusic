@@ -37,10 +37,10 @@ Search for Creative Commons music on Jamendo. The key (client ID) and the search
 
 ## Done when
 
-- [ ] Search works in singleplayer.
-- [ ] The same search repeated doesn't use up a request (log says "cache").
-- [ ] Without a client ID, the game starts and explains what's missing.
-- [ ] The client ID never appears in Git, in chat or in the logs.
+- [x] Search works in singleplayer.
+- [x] The same search repeated doesn't use up a request (log says "cache").
+- [x] Without a client ID, the game starts and explains what's missing.
+- [x] The client ID never appears in Git, in chat or in the logs.
 
 ## Pitfalls
 
@@ -61,8 +61,9 @@ Read on 2026-10-27 from the [API Terms of Use](https://devportal.jamendo.com/api
 
 ## APIs
 
-- **Confirmed (26.3):** `CommandRegistrationCallback`.
-- **To confirm:** Jamendo API v3.0 endpoints and parameters (`/tracks`, `search`, `include`, `audioformat`…); which field holds the track's page on Jamendo (for the backlink); how a rejected client ID is reported; exact quota limits; where the config folder is (`FabricLoader.getInstance().getConfigDir()`?).
+- **Confirmed (26.3):** `CommandRegistrationCallback`, `FabricLoader.getConfigDir()`, `ServerLifecycleEvents.SERVER_STARTING`, `ClickEvent.OpenUrl`.
+- **Confirmed (Jamendo):** `/tracks` with `search`/`tags`/`order`/`limit`/`audioformat`/`imagesize`; the page link is `shareurl`; a rejected ID answers HTTP 200 with `headers.code` 5 (or 11 when suspended). See the session notes.
+- **Not found in the docs:** the 35,000 requests/month figure (only "above 500,000 hits, contact us").
 
 ## Session kickoff prompt
 
@@ -70,4 +71,14 @@ Read on 2026-10-27 from the [API Terms of Use](https://devportal.jamendo.com/api
 
 ## Session notes
 
-*(fill in at the end: decisions made, what was left to do)*
+**29 Oct 2026**
+
+- **Built:** `ServerConfig` (`src/main/.../config`), `JamendoClient`, `JamendoTrack`, `JamendoException` and `JamendoUsage` (`src/main/.../jamendo`), and the server command `MusicCommand` (`src/main/.../command`): `/music jamendo search <text>` and `/music jamendo tag <tags>`. Each result line shows title, artist, duration and license; hovering adds "via Jamendo", and clicking opens the track's page (the direct link the terms ask for).
+- **Config:** `config/unlimusic-server.json` (`run/config/` in dev) with `jamendoClientId`, read on every `ServerLifecycleEvents.SERVER_STARTING`: the integrated server of each singleplayer world, or a dedicated server once. So fixing the file only needs the world reopened. Missing file → created empty; blank ID → Jamendo off with a log line that says how to get one; unreadable JSON → Jamendo off and the file left as it is (it may hold the pasted ID). The log names the file as `config/...`, never the full path (no Windows username in shared logs). The name was already in `.gitignore` since E01.
+- **Confirmed (26.3):** `FabricLoader.getConfigDir()`; `ServerLifecycleEvents.SERVER_STARTING`; `CommandRegistrationCallback` `(dispatcher, buildContext, selection)`; `Commands.literal/argument`; `CommandSourceStack.sendSuccess(Supplier, boolean)` / `sendFailure`; `ClickEvent.OpenUrl(URI)`; permissions are now `Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)` and friends (`PermissionCheck`), not a number (for E12).
+- **Jamendo API (confirmed):** `GET https://api.jamendo.com/v3.0/tracks/?client_id=…&format=json` with `search` (free text, `order=relevance`) or `tags` (all must match, `order=popularity_month`), `limit` (max 200), `audioformat`, `imagesize`. The track page is `shareurl` (`https://www.jamendo.com/track/{id}`; `shorturl` is `jamen.do/t/{id}`). `id` and `artist_id` come as strings, `duration` in seconds; `license_ccurl` is the license's creativecommons.org URL, turned into "CC BY-NC-SA 3.0". Errors come with **HTTP 200** and `headers.code`: 5 invalid client ID (also for a missing one), 6 rate limit, 11 suspended app; 5 and 11 turn Jamendo off until the config changes.
+- **Secrets found:** `headers.next` (next page URL) holds the client ID in clear, so a raw answer is never logged. The `audio` URL carries a `from=` token instead of the ID; it plays without it, but it is kept (probably how Jamendo credits plays to the app) and treated as secret: `JamendoTrack.toString()` leaves it out.
+- **Quota:** the API docs give no 35,000 figure: they say apps above 500,000 hits should write to Jamendo, which warns in its answers and by email before limiting anything. Decision D20: count and warn, never block.
+- **Decisions:** D19 (audio format `mp32` for now, E11 decides) and D20 (cache, counter, rejected ID); see `README.md`.
+- **Results (`runClient`, Windows 11 x64):** without an ID the game starts and the log explains it; with the ID the log only says it was found (the ID appears 0 times in `run/logs/`); `/music jamendo search lofi` lists tracks and clicking opens their page; the same search again logs `(cache)` and doesn't raise the request count.
+- **Left for later:** anyone can search (E12: per-player limits, every search spends the server's quota). Searching from the screen goes through packets (E08/E09). `JamendoTrack` → `TrackInfo` (credit "CC … · via Jamendo", cover) comes when tracks are played (E09/E11). The 35,000 figure should be checked on the developer portal's dashboard.
