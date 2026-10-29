@@ -82,7 +82,7 @@ Full plan in `docs/plan/README.md`. Each entry is one work session and has its o
 - [x] E05 "Now playing" HUD
 
 **Phase 2 — Finding music**
-- [ ] E06 Radio search (Radio Browser)
+- [x] E06 Radio search (Radio Browser)
 - [ ] E07 Server-side Jamendo client, with cache
 - [ ] E08 Networking: client ↔ server packets
 - [ ] E09 Main screen: radios and Jamendo

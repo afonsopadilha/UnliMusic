@@ -34,6 +34,7 @@ public final class UnliMusicCommand {
 	private static final int MAX_NAME_LENGTH = 40;
 	// Some stations list twenty tags or more; the first few say enough.
 	private static final int MAX_TAGS = 6;
+	private static final int MIN_TEXT_LENGTH = 2;
 	// Stations shown in chat by id, so that clicking a line can find what to play. Only touched on the game
 	// thread. The oldest are forgotten past the limit, by which time their lines have scrolled far away.
 	private static final Map<String, RadioStation> SHOWN = new LinkedHashMap<>() {
@@ -55,8 +56,16 @@ public final class UnliMusicCommand {
 								.suggests((context, builder) -> SharedSuggestionProvider.suggest(Locale.getISOCountries(), builder))
 								.executes(context -> searchByCountry(context.getSource(),
 										StringArgumentType.getString(context, "country"))))
-						// What clicking a result runs. A literal wins over the country argument when the
-						// input is exactly "play", and no country code is four letters long.
+						// A literal wins over the country argument when the input is exactly that word, and
+						// no country code is longer than two letters. greedyString takes the rest of the line,
+						// spaces included ("radio comercial", "smooth jazz").
+						.then(literal("name").then(argument("text", StringArgumentType.greedyString())
+								.executes(context -> searchByText(context.getSource(), SearchBy.NAME,
+										StringArgumentType.getString(context, "text")))))
+						.then(literal("genre").then(argument("text", StringArgumentType.greedyString())
+								.executes(context -> searchByText(context.getSource(), SearchBy.TAG,
+										StringArgumentType.getString(context, "text")))))
+						// What clicking a result runs.
 						.then(literal("play").then(argument("station", StringArgumentType.word())
 								.executes(context -> play(context.getSource(),
 										StringArgumentType.getString(context, "station"))))))));
@@ -69,6 +78,18 @@ public final class UnliMusicCommand {
 		}
 		String code = country.toUpperCase(Locale.ROOT);
 		search(source, SearchBy.COUNTRY, code, Component.translatable("command.unlimusic.radios.in_country", code));
+		return Command.SINGLE_SUCCESS;
+	}
+
+	private static int searchByText(FabricClientCommandSource source, SearchBy by, String text) {
+		String value = text.strip();
+		// Radio Browser matches any part of a name or tag, so a single letter would match almost everything.
+		if (value.length() < MIN_TEXT_LENGTH) {
+			source.sendError(Component.translatable("command.unlimusic.radios.too_short", MIN_TEXT_LENGTH));
+			return 0;
+		}
+		String key = by == SearchBy.NAME ? "command.unlimusic.radios.named" : "command.unlimusic.radios.in_genre";
+		search(source, by, value, Component.translatable(key, value));
 		return Command.SINGLE_SUCCESS;
 	}
 
