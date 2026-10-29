@@ -34,5 +34,8 @@
 	"command.unlimusic.jamendo.no_client_id": "O Jamendo está desligado neste servidor: o dono não definiu um client ID do Jamendo.",
 	"command.unlimusic.jamendo.rejected": "O Jamendo recusou o client ID deste servidor. O dono do servidor tem de o verificar.",
 	"command.unlimusic.jamendo.rate_limited": "O Jamendo está a receber demasiadas pesquisas deste servidor. Tenta mais tarde.",
-	"command.unlimusic.jamendo.offline": "Não foi possível ligar ao Jamendo. Verifica a ligação à internet e tenta outra vez."
+	"command.unlimusic.jamendo.offline": "Não foi possível ligar ao Jamendo. Verifica a ligação à internet e tenta outra vez.",
+	"command.unlimusic.ping.sent": "Ping enviado ao servidor…",
+	"command.unlimusic.ping.pong": "Pong! O servidor respondeu em %s ms.",
+	"command.unlimusic.ping.no_mod": "Este servidor não tem o UnliMusic, por isso não pode responder."
 }

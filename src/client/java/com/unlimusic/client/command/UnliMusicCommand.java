@@ -7,6 +7,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.unlimusic.UnliMusic;
 import com.unlimusic.client.audio.MusicPlayer;
+import com.unlimusic.client.network.ClientNetworking;
 import com.unlimusic.radio.RadioBrowserClient;
 import com.unlimusic.radio.RadioBrowserClient.SearchBy;
 import com.unlimusic.radio.RadioStation;
@@ -68,7 +69,18 @@ public final class UnliMusicCommand {
 						// What clicking a result runs.
 						.then(literal("play").then(argument("station", StringArgumentType.word())
 								.executes(context -> play(context.getSource(),
-										StringArgumentType.getString(context, "station"))))))));
+										StringArgumentType.getString(context, "station"))))))
+						.then(literal("ping").executes(context -> ping(context.getSource())))));
+	}
+
+	/** Asks the server for a pong; the answer shows up in chat when it arrives (see ClientNetworking). */
+	private static int ping(FabricClientCommandSource source) {
+		if (!ClientNetworking.ping()) {
+			source.sendError(Component.translatable("command.unlimusic.ping.no_mod"));
+			return 0;
+		}
+		source.sendFeedback(Component.translatable("command.unlimusic.ping.sent").withStyle(ChatFormatting.GRAY));
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int searchByCountry(FabricClientCommandSource source, String country) {

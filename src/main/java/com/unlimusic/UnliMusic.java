@@ -2,6 +2,7 @@ package com.unlimusic;
 
 import com.unlimusic.command.MusicCommand;
 import com.unlimusic.config.ServerConfig;
+import com.unlimusic.network.ModNetworking;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -40,6 +41,7 @@ public class UnliMusic implements ModInitializer {
 		// Runs on dedicated servers and on the integrated server of each singleplayer world, before it loads.
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerConfig.load());
 		MusicCommand.register();
+		ModNetworking.register();
 	}
 
 	public static Identifier id(String path) {

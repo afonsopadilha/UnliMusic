@@ -5,6 +5,7 @@ import com.unlimusic.client.command.UnliMusicCommand;
 import com.unlimusic.client.audio.MusicPlayer;
 import com.unlimusic.client.hud.NowPlayingHud;
 import com.unlimusic.client.input.ModKeys;
+import com.unlimusic.client.network.ClientNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -18,6 +19,8 @@ public class UnliMusicClient implements ClientModInitializer {
 		StatusMessages.register();
 		NowPlayingHud.register();
 		UnliMusicCommand.register();
+		// The main entrypoint has already registered the payload types by the time this runs.
+		ClientNetworking.register();
 		LavaplayerEngine.startInBackground();
 
 		ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer.INSTANCE::tick);

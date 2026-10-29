@@ -34,5 +34,8 @@
 	"command.unlimusic.jamendo.no_client_id": "Jamendo is off on this server: its owner has not set a Jamendo client ID.",
 	"command.unlimusic.jamendo.rejected": "Jamendo turned down this server's client ID. The server's owner needs to check it.",
 	"command.unlimusic.jamendo.rate_limited": "Jamendo is getting too many searches from this server. Try again later.",
-	"command.unlimusic.jamendo.offline": "Could not reach Jamendo. Check the internet connection and try again."
+	"command.unlimusic.jamendo.offline": "Could not reach Jamendo. Check the internet connection and try again.",
+	"command.unlimusic.ping.sent": "Ping sent to the server…",
+	"command.unlimusic.ping.pong": "Pong! The server answered in %s ms.",
+	"command.unlimusic.ping.no_mod": "This server does not have UnliMusic, so it cannot answer."
 }
