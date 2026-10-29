@@ -26,6 +26,7 @@
 	"command.unlimusic.radios.click_to_play": "Click to play",
 	"command.unlimusic.radios.unknown_station": "That station is no longer in the list. Search again and pick it from there.",
 	"command.unlimusic.jamendo.too_short": "Type at least %s letters.",
+	"command.unlimusic.jamendo.too_long": "That is too long: a search may have at most %s characters.",
 	"command.unlimusic.jamendo.searching": "Searching Jamendo for “%s”…",
 	"command.unlimusic.jamendo.header": "Jamendo tracks for “%s” (click one to open its page):",
 	"command.unlimusic.jamendo.none": "No Jamendo tracks found for “%s”.",
@@ -37,5 +38,8 @@
 	"command.unlimusic.jamendo.offline": "Could not reach Jamendo. Check the internet connection and try again.",
 	"command.unlimusic.ping.sent": "Ping sent to the server…",
 	"command.unlimusic.ping.pong": "Pong! The server answered in %s ms.",
-	"command.unlimusic.ping.no_mod": "This server does not have UnliMusic, so it cannot answer."
+	"message.unlimusic.server.checking": "Still checking whether this server has UnliMusic. Try again in a moment.",
+	"message.unlimusic.server.missing": "This server does not have UnliMusic: Jamendo and listening together need it on the server too.",
+	"message.unlimusic.server.client_outdated": "This server has a newer version of UnliMusic. Update the mod to use Jamendo and listen together here.",
+	"message.unlimusic.server.server_outdated": "This server has an older version of UnliMusic. Its owner needs to update it before Jamendo and listening together work here."
 }

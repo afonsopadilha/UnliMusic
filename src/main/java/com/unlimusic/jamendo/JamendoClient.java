@@ -47,6 +47,13 @@ public final class JamendoClient {
 		}
 	}
 
+	/** Tracks per search, the same for the command and the screen. */
+	public static final int RESULTS = 10;
+	// Jamendo matches any part of a name, so a single letter would match almost everything.
+	public static final int MIN_QUERY_LENGTH = 2;
+	// Also the most a search packet may carry (E08).
+	public static final int MAX_QUERY_LENGTH = 100;
+
 	private static final String API = "https://api.jamendo.com/v3.0";
 	// mp32 is variable bit rate, better than mp31's fixed 96 kbit/s. Seeking a VBR MP3 is coarse in lavaplayer
 	// (decision D6), which shared mode will have to weigh up (E11).
@@ -59,6 +66,10 @@ public final class JamendoClient {
 	// as far as reasonably necessary, and changes on Jamendo's side must show up soon. An hour still turns
 	// the same search repeated by a whole server into one request.
 	private static final long CACHE_MS = Duration.ofHours(1).toMillis();
+	// Jamendo sometimes answers a search with no tracks, and the very same request a minute later finds ten
+	// (seen in E08: "lofi" gave 0, 0, then 10). An empty answer is kept only long enough to absorb repeated
+	// clicks, so a bad moment on Jamendo's side doesn't stick for an hour.
+	private static final long EMPTY_CACHE_MS = Duration.ofMinutes(1).toMillis();
 	private static final int CACHE_MAX_SEARCHES = 500;
 	private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
 	private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
@@ -105,13 +116,17 @@ public final class JamendoClient {
 		}
 
 		return CompletableFuture.supplyAsync(() -> {
-			List<JamendoTrack> tracks = Arrays.stream(get(clientId, "/tracks/", query).results())
+			TrackJson[] results = get(clientId, "/tracks/", query).results();
+			List<JamendoTrack> tracks = Arrays.stream(results)
 					.filter(TrackJson::isUsable)
 					.map(TrackJson::toTrack)
 					.toList();
 			remember(query, tracks);
-			UnliMusic.LOGGER.info("Jamendo search {} \"{}\": {} tracks (request {} this month)", by, text,
-					tracks.size(), usage.requestsThisMonth());
+			// Says whether an empty list came from Jamendo or from our filter.
+			String leftOut = tracks.size() < results.length
+					? ", " + (results.length - tracks.size()) + " more left out as unusable" : "";
+			UnliMusic.LOGGER.info("Jamendo search {} \"{}\": {} tracks{} (request {} this month)", by, text,
+					tracks.size(), leftOut, usage.requestsThisMonth());
 			return tracks;
 		}, executor);
 	}
@@ -122,7 +137,8 @@ public final class JamendoClient {
 		if (cache.size() >= CACHE_MAX_SEARCHES) {
 			cache.clear();
 		}
-		cache.put(query, new CachedSearch(tracks, System.currentTimeMillis() + CACHE_MS));
+		long keepFor = tracks.isEmpty() ? EMPTY_CACHE_MS : CACHE_MS;
+		cache.put(query, new CachedSearch(tracks, System.currentTimeMillis() + keepFor));
 	}
 
 	/**

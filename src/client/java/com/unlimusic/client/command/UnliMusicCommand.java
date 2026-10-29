@@ -8,6 +8,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.unlimusic.UnliMusic;
 import com.unlimusic.client.audio.MusicPlayer;
 import com.unlimusic.client.network.ClientNetworking;
+import com.unlimusic.client.network.JamendoSearches;
+import com.unlimusic.jamendo.JamendoClient;
+import com.unlimusic.jamendo.JamendoText;
 import com.unlimusic.radio.RadioBrowserClient;
 import com.unlimusic.radio.RadioBrowserClient.SearchBy;
 import com.unlimusic.radio.RadioStation;
@@ -70,13 +73,54 @@ public final class UnliMusicCommand {
 						.then(literal("play").then(argument("station", StringArgumentType.word())
 								.executes(context -> play(context.getSource(),
 										StringArgumentType.getString(context, "station"))))))
+						// Runs on the server, through packets: it needs the mod there (decision D9).
+						.then(literal("jamendo")
+								.then(literal("search").then(argument("text", StringArgumentType.greedyString())
+										.executes(context -> searchJamendo(context.getSource(), JamendoClient.SearchBy.TEXT,
+												StringArgumentType.getString(context, "text")))))
+								.then(literal("tag").then(argument("tags", StringArgumentType.greedyString())
+										.executes(context -> searchJamendo(context.getSource(), JamendoClient.SearchBy.TAG,
+												StringArgumentType.getString(context, "tags"))))))
 						.then(literal("ping").executes(context -> ping(context.getSource())))));
+	}
+
+	/** What the screen will do (E09): asks the server, and lists its answer in chat when it arrives. */
+	private static int searchJamendo(FabricClientCommandSource source, JamendoClient.SearchBy by, String text) {
+		String value = text.strip();
+		if (value.length() < JamendoClient.MIN_QUERY_LENGTH) {
+			source.sendError(Component.translatable("command.unlimusic.jamendo.too_short", JamendoClient.MIN_QUERY_LENGTH));
+			return 0;
+		}
+		if (value.length() > JamendoClient.MAX_QUERY_LENGTH) {
+			source.sendError(Component.translatable("command.unlimusic.jamendo.too_long", JamendoClient.MAX_QUERY_LENGTH));
+			return 0;
+		}
+		// The callback runs on the game thread, when the server's answer arrives.
+		Component problem = JamendoSearches.search(by, value, results -> {
+			if (results.failure() != null) {
+				source.sendError(results.failure().message());
+			} else if (results.tracks().isEmpty()) {
+				source.sendFeedback(Component.translatable("command.unlimusic.jamendo.none", value));
+			} else {
+				source.sendFeedback(Component.translatable("command.unlimusic.jamendo.header", value).withStyle(ChatFormatting.YELLOW));
+				for (int i = 0; i < results.tracks().size(); i++) {
+					source.sendFeedback(JamendoText.resultLine(i + 1, results.tracks().get(i)));
+				}
+			}
+		});
+		if (problem != null) {
+			source.sendError(problem);
+			return 0;
+		}
+		source.sendFeedback(Component.translatable("command.unlimusic.jamendo.searching", value).withStyle(ChatFormatting.GRAY));
+		return Command.SINGLE_SUCCESS;
 	}
 
 	/** Asks the server for a pong; the answer shows up in chat when it arrives (see ClientNetworking). */
 	private static int ping(FabricClientCommandSource source) {
-		if (!ClientNetworking.ping()) {
-			source.sendError(Component.translatable("command.unlimusic.ping.no_mod"));
+		Component problem = ClientNetworking.ping();
+		if (problem != null) {
+			source.sendError(problem);
 			return 0;
 		}
 		source.sendFeedback(Component.translatable("command.unlimusic.ping.sent").withStyle(ChatFormatting.GRAY));
