@@ -84,7 +84,7 @@ Full plan in `docs/plan/README.md`. Each entry is one work session and has its o
 **Phase 2 — Finding music**
 - [x] E06 Radio search (Radio Browser)
 - [x] E07 Server-side Jamendo client, with cache
-- [ ] E08 Networking: client ↔ server packets
+- [x] E08 Networking: client ↔ server packets
 - [ ] E09 Main screen: radios and Jamendo
 
 **Phase 3 — Listening together**

@@ -20,6 +20,14 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+
+	runs {
+		// run/ is the client's. The dedicated server runs next to it to test multiplayer, so it gets its
+		// own folder: logs, config and worlds would otherwise collide.
+		server {
+			runDir "run-server"
+		}
+	}
 }
 
 configurations {
