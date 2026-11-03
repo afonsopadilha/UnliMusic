@@ -1,5 +1,6 @@
 package com.unlimusic.music;
 
+import com.unlimusic.jamendo.JamendoTrack;
 import java.nio.file.Path;
 
 /**
@@ -9,11 +10,12 @@ import java.nio.file.Path;
  * <p>Lives in {@code src/main} because shared mode will send it between server and clients.
  *
  * @param source     where the track comes from
- * @param location   what the source opens: a file path for now; a stream URL or a Jamendo id later
+ * @param location   what the source opens: a file path, a stream URL, or Jamendo's audio URL. That last one
+ *                   carries a token tied to the app, so {@link #toString()} leaves Jamendo's out
  * @param title      never empty: the file name when a local file has no title tag
  * @param artist     null when unknown
  * @param durationMs length in milliseconds, or 0 when unknown (a radio stream, or a file not opened yet)
- * @param credit     license and attribution to show (Jamendo), or null
+ * @param credit     the license to show (Jamendo, which the HUD follows with "via Jamendo"), or null
  * @param coverUrl   cover image, or null
  */
 public record TrackInfo(Source source, String location, String title, String artist, long durationMs,
@@ -35,8 +37,21 @@ public record TrackInfo(Source source, String location, String title, String art
 		return new TrackInfo(Source.RADIO, url, title, null, 0, null, null);
 	}
 
+	/** A track found on Jamendo, credited with its artist and license as Jamendo's terms ask (4.1). */
+	public static TrackInfo jamendo(JamendoTrack track) {
+		String license = track.license() != null ? track.license() : "CC";
+		return new TrackInfo(Source.JAMENDO, track.audioUrl(), track.name(), track.artist(),
+				track.durationSeconds() * 1000L, license, track.imageUrl());
+	}
+
 	/** A radio has no end and no fixed position: pausing it means coming back to what is live. */
 	public boolean isLive() {
 		return source == Source.RADIO;
+	}
+
+	@Override
+	public String toString() {
+		String shownLocation = source == Source.JAMENDO ? "<Jamendo audio URL>" : location;
+		return "TrackInfo[" + source + " " + shownLocation + " \"" + title + "\" by " + artist + "]";
 	}
 }

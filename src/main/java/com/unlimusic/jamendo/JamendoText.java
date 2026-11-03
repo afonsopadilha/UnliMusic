@@ -23,20 +23,40 @@ public final class JamendoText {
 	 * Jamendo when clicked: the direct link the API terms ask for.
 	 */
 	public static MutableComponent resultLine(int number, JamendoTrack track) {
-		String license = track.license() != null ? track.license() : "CC";
 		ClickEvent click = new ClickEvent.OpenUrl(URI.create(track.pageUrl()));
+		Component hint = Component.translatable("command.unlimusic.jamendo.click_to_open");
+		return line(number, track, click, hint);
+	}
+
+	/**
+	 * The same line, which runs {@code playCommand} when clicked, followed by " [↗]" that opens the track's
+	 * page: the line can only do one thing when clicked, and the link must stay.
+	 */
+	public static MutableComponent resultLine(int number, JamendoTrack track, String playCommand) {
+		ClickEvent click = new ClickEvent.RunCommand(playCommand);
+		Component hint = Component.translatable("command.unlimusic.jamendo.click_to_play");
+		ClickEvent open = new ClickEvent.OpenUrl(URI.create(track.pageUrl()));
+		HoverEvent openHint = new HoverEvent.ShowText(Component.translatable("command.unlimusic.jamendo.click_to_open"));
+		return line(number, track, click, hint)
+				.append(Component.literal(" [↗]").withStyle(ChatFormatting.AQUA)
+						.withStyle(style -> style.withClickEvent(open).withHoverEvent(openHint)));
+	}
+
+	private static MutableComponent line(int number, JamendoTrack track, ClickEvent click, Component hint) {
+		String license = track.license() != null ? track.license() : "CC";
 		HoverEvent hover = new HoverEvent.ShowText(Component.literal(track.name() + "\n" + track.artist())
 				.append(Component.literal("\n" + license + " · ").withStyle(ChatFormatting.GRAY))
 				.append(Component.translatable("command.unlimusic.jamendo.via").withStyle(ChatFormatting.GRAY))
 				.append(Component.literal("\n"))
-				.append(Component.translatable("command.unlimusic.jamendo.click_to_open")
-						.withStyle(ChatFormatting.YELLOW)));
-		return Component.literal(" " + number + ". ").withStyle(ChatFormatting.GRAY)
+				.append(hint.copy().withStyle(ChatFormatting.YELLOW)));
+		// The number, name and details share one click; a part appended later keeps its own.
+		MutableComponent details = Component.literal(" " + number + ". ").withStyle(ChatFormatting.GRAY)
 				.append(Component.literal(shorten(track.name())).withStyle(ChatFormatting.WHITE))
 				.append(Component.literal(" – " + track.artist()).withStyle(ChatFormatting.GRAY))
 				.append(Component.literal(" · " + duration(track.durationSeconds()) + " · " + license)
 						.withStyle(ChatFormatting.DARK_GRAY))
 				.withStyle(style -> style.withClickEvent(click).withHoverEvent(hover));
+		return Component.empty().append(details);
 	}
 
 	private static String duration(int seconds) {

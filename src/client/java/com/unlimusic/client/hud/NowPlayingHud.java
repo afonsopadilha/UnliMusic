@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Util;
 
 /**
@@ -77,7 +78,7 @@ public final class NowPlayingHud implements HudElement {
 			shownSinceMillis = Util.getMillis();
 		}
 		Component detail = detailLine(music, track);
-		Component credit = track.credit() != null ? Component.literal(track.credit()) : null;
+		Component credit = creditLine(track);
 		int progressHeight = state == MusicPlayer.State.LOADING ? 0 : progressHeight(font, track);
 
 		// Measure first: a later element that overlaps an earlier one is drawn above it, so the background
@@ -110,6 +111,17 @@ public final class NowPlayingHud implements HudElement {
 		if (progressHeight > 0) {
 			extractProgress(graphics, font, music, track, x, y + LINE_GAP);
 		}
+	}
+
+	/** The license, followed for Jamendo by "via Jamendo" in the player's language; null when there is none. */
+	private static Component creditLine(TrackInfo track) {
+		if (track.credit() == null) {
+			return null;
+		}
+		MutableComponent credit = Component.literal(track.credit());
+		return track.source() == TrackInfo.Source.JAMENDO
+				? credit.append(" · ").append(Component.translatable("command.unlimusic.jamendo.via"))
+				: credit;
 	}
 
 	/** While loading, what is going on; otherwise the artist, or null when unknown. */

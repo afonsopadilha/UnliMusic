@@ -109,9 +109,14 @@ public final class LavaplayerEngine {
 	 * milliseconds in. Exactly one of the callbacks runs, on a lavaplayer thread: {@code onReady} with a stream
 	 * for the sound engine and what lavaplayer read about the track (tags, length), or {@code onError} with the
 	 * reason. A {@code live} stream never makes the sound engine wait (see {@link PcmAudioStream}).
+	 *
+	 * @param shownAs what the log calls the track. When it is not the identifier itself (a Jamendo URL, whose
+	 *                token must stay out of logs), failures are logged without the exceptions' stack traces,
+	 *                which could repeat the URL, and with any URL's query hidden
 	 */
-	public static void load(String identifier, long positionMs, boolean live,
+	public static void load(String identifier, String shownAs, long positionMs, boolean live,
 			BiConsumer<PcmAudioStream, AudioTrackInfo> onReady, Consumer<Component> onError) {
+		boolean secret = !identifier.equals(shownAs);
 		MANAGER.whenComplete((manager, startError) -> {
 			if (startError != null) {
 				onError.accept(Component.translatable("message.unlimusic.load_failed.engine"));
@@ -134,7 +139,7 @@ public final class LavaplayerEngine {
 					// this is the only place that says why.
 					player.addListener(event -> {
 						if (event instanceof TrackExceptionEvent failure) {
-							UnliMusic.LOGGER.warn("Playback of {} failed", identifier, failure.exception);
+							logFailure("Playback of {} failed", shownAs, failure.exception, secret);
 						}
 					});
 					player.startTrack(track, false);
@@ -153,11 +158,26 @@ public final class LavaplayerEngine {
 
 				@Override
 				public void loadFailed(FriendlyException exception) {
-					UnliMusic.LOGGER.warn("Could not load {}", identifier, exception);
+					logFailure("Could not load {}", shownAs, exception, secret);
+					// lavaplayer's own words for the player, such as "That URL is not playable.": never the URL.
 					onError.accept(Component.literal(exception.getMessage()));
 				}
 			});
 		});
+	}
+
+	private static void logFailure(String message, String shownAs, Throwable error, boolean secret) {
+		if (!secret) {
+			UnliMusic.LOGGER.warn(message, shownAs, error);
+			return;
+		}
+		// Each exception's type and message, causes included, as one line.
+		StringBuilder causes = new StringBuilder();
+		for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+			String text = String.valueOf(cause.getMessage()).replaceAll("\\?\\S*", "?<hidden>");
+			causes.append(causes.isEmpty() ? "" : " <- ").append(cause.getClass().getSimpleName()).append(": ").append(text);
+		}
+		UnliMusic.LOGGER.warn(message + ": {}", shownAs, causes);
 	}
 
 	/** lavaplayer's AAC (ADTS) probe, also claiming the Content-Types stations use for HE-AAC. */

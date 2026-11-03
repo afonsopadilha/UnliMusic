@@ -272,7 +272,7 @@ public final class MusicPlayer {
 		MusicSource source = switch (track.source()) {
 			case LOCAL -> LocalFileSource.INSTANCE;
 			case RADIO -> RadioSource.INSTANCE;
-			case JAMENDO -> throw new UnsupportedOperationException(track.source() + " is not playable yet (E07)");
+			case JAMENDO -> JamendoSource.INSTANCE;
 		};
 
 		// Whatever was playing stops now, so two tracks can never overlap.

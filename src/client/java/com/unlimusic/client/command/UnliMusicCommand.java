@@ -11,6 +11,8 @@ import com.unlimusic.client.network.ClientNetworking;
 import com.unlimusic.client.network.JamendoSearches;
 import com.unlimusic.jamendo.JamendoClient;
 import com.unlimusic.jamendo.JamendoText;
+import com.unlimusic.jamendo.JamendoTrack;
+import com.unlimusic.music.TrackInfo;
 import com.unlimusic.radio.RadioBrowserClient;
 import com.unlimusic.radio.RadioBrowserClient.SearchBy;
 import com.unlimusic.radio.RadioStation;
@@ -47,6 +49,13 @@ public final class UnliMusicCommand {
 			return size() > 200;
 		}
 	};
+	// Jamendo tracks shown in chat, by Jamendo's id, the same way.
+	private static final Map<String, JamendoTrack> SHOWN_TRACKS = new LinkedHashMap<>() {
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<String, JamendoTrack> eldest) {
+			return size() > 200;
+		}
+	};
 
 	private UnliMusicCommand() {
 	}
@@ -80,8 +89,24 @@ public final class UnliMusicCommand {
 												StringArgumentType.getString(context, "text")))))
 								.then(literal("tag").then(argument("tags", StringArgumentType.greedyString())
 										.executes(context -> searchJamendo(context.getSource(), JamendoClient.SearchBy.TAG,
-												StringArgumentType.getString(context, "tags"))))))
+												StringArgumentType.getString(context, "tags")))))
+								// What clicking a result runs. Plays on this client only (personal mode), straight
+								// from Jamendo: the server is not involved any more.
+								.then(literal("play").then(argument("track", StringArgumentType.word())
+										.executes(context -> playJamendo(context.getSource(),
+												StringArgumentType.getString(context, "track"))))))
 						.then(literal("ping").executes(context -> ping(context.getSource())))));
+	}
+
+	/** Game thread: plays a track listed by an earlier search, for this player only. */
+	private static int playJamendo(FabricClientCommandSource source, String id) {
+		JamendoTrack track = SHOWN_TRACKS.get(id);
+		if (track == null) {
+			source.sendError(Component.translatable("command.unlimusic.jamendo.unknown_track"));
+			return 0;
+		}
+		MusicPlayer.INSTANCE.play(TrackInfo.jamendo(track));
+		return Command.SINGLE_SUCCESS;
 	}
 
 	/** What the screen will do (E09): asks the server, and lists its answer in chat when it arrives. */
@@ -102,9 +127,11 @@ public final class UnliMusicCommand {
 			} else if (results.tracks().isEmpty()) {
 				source.sendFeedback(Component.translatable("command.unlimusic.jamendo.none", value));
 			} else {
-				source.sendFeedback(Component.translatable("command.unlimusic.jamendo.header", value).withStyle(ChatFormatting.YELLOW));
+				source.sendFeedback(Component.translatable("command.unlimusic.jamendo.header_play", value).withStyle(ChatFormatting.YELLOW));
 				for (int i = 0; i < results.tracks().size(); i++) {
-					source.sendFeedback(JamendoText.resultLine(i + 1, results.tracks().get(i)));
+					JamendoTrack track = results.tracks().get(i);
+					SHOWN_TRACKS.put(track.id(), track);
+					source.sendFeedback(JamendoText.resultLine(i + 1, track, "/unlimusic jamendo play " + track.id()));
 				}
 			}
 		});

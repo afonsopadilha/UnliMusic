@@ -15,23 +15,15 @@ import net.minecraft.network.chat.Component;
 public final class RadioSource implements MusicSource {
 	public static final RadioSource INSTANCE = new RadioSource();
 
-	// The engine takes 4 s of audio as soon as the sound starts; the rest is slack for a slow network.
-	private static final long PREBUFFER_MS = 6_000;
-	// Most stations send a burst of several seconds on connect; one that only trickles gets this long.
-	private static final long PREBUFFER_TIMEOUT_MS = 20_000;
-
 	private RadioSource() {
 	}
 
 	@Override
 	public void open(TrackInfo track, long positionMs, BiConsumer<PcmAudioStream, TrackInfo> onReady,
 			Consumer<Component> onError) {
-		LavaplayerEngine.load(track.location(), 0, true, (stream, info) -> {
+		LavaplayerEngine.load(track.location(), track.location(), 0, true, (stream, info) -> {
 			logStation(track, info);
-			TrackInfo named = withStationName(track, info);
-			// Waiting for the buffer takes seconds; a virtual thread is a cheap place to block,
-			// and it keeps lavaplayer's own loader threads free.
-			Thread.ofVirtual().name("UnliMusic radio buffering").start(() -> prebuffer(stream, named, onReady, onError));
+			Prebuffering.thenReady(stream, withStationName(track, info), onReady, onError);
 		}, onError);
 	}
 
@@ -42,26 +34,6 @@ public final class RadioSource implements MusicSource {
 			return track;
 		}
 		return TrackInfo.radio(track.location(), info.author.strip());
-	}
-
-	private static void prebuffer(PcmAudioStream stream, TrackInfo track, BiConsumer<PcmAudioStream, TrackInfo> onReady,
-			Consumer<Component> onError) {
-		long start = System.currentTimeMillis();
-		boolean filled;
-		try {
-			filled = stream.prebuffer(PREBUFFER_MS, PREBUFFER_TIMEOUT_MS);
-		} catch (InterruptedException e) {
-			filled = false;
-		}
-
-		if (filled) {
-			UnliMusic.LOGGER.info("Buffered {} ms of {} in {} ms", PREBUFFER_MS, track.title(), System.currentTimeMillis() - start);
-			onReady.accept(stream, track);
-		} else {
-			// Nobody else has the stream yet, so closing it (and the connection) is our job.
-			stream.close();
-			onError.accept(Component.translatable("message.unlimusic.load_failed.no_audio"));
-		}
 	}
 
 	/**
