@@ -48,6 +48,9 @@ public final class RadioBrowserClient {
 		}
 	}
 
+	/** Shortest name or genre worth searching: the API matches any part of one, so a single letter matches almost everything. */
+	public static final int MIN_TEXT_LENGTH = 2;
+
 	// One address per server behind a single name; a reverse look-up of each gives the server's own name.
 	private static final String SERVERS_DNS_NAME = "all.api.radio-browser.info";
 	// What lavaplayer decodes, as Radio Browser names it. Its other codecs are video streams (H.264, MP4,

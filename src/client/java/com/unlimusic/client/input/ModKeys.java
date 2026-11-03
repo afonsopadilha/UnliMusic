@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.unlimusic.UnliMusic;
 import com.unlimusic.client.audio.MusicPlayer;
 import com.unlimusic.client.audio.TestPlayback;
+import com.unlimusic.client.screen.MusicScreen;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
@@ -12,16 +13,19 @@ import net.minecraft.client.Minecraft;
 /**
  * The mod's key mappings. Players can rebind them under Options → Controls → UnliMusic.
  *
- * <p>The default keys are ones vanilla 26.3 leaves free; M is kept for the mod's screen (E09).
+ * <p>The default keys are ones vanilla 26.3 leaves free. They only fire in the world with no screen open;
+ * {@link MusicScreen} checks the same keys itself while it is open.
  */
 public final class ModKeys {
 	// Its name comes from the language key "key.category.unlimusic.main".
 	private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(UnliMusic.id("main"));
 
+	public static final KeyMapping OPEN = register("key.unlimusic.open", InputConstants.KEY_M);
 	public static final KeyMapping TEST = register("key.unlimusic.test", InputConstants.KEY_J);
 	public static final KeyMapping PAUSE = register("key.unlimusic.pause", InputConstants.KEY_K);
 	public static final KeyMapping STOP = register("key.unlimusic.stop", InputConstants.KEY_U);
 
+	private static final SinglePress OPEN_PRESS = new SinglePress(OPEN);
 	private static final SinglePress TEST_PRESS = new SinglePress(TEST);
 	private static final SinglePress PAUSE_PRESS = new SinglePress(PAUSE);
 	private static final SinglePress STOP_PRESS = new SinglePress(STOP);
@@ -40,6 +44,7 @@ public final class ModKeys {
 
 	private static void onEndTick(Minecraft client) {
 		// Poll every key on every tick, even outside a world, so a press never waits for a later tick.
+		boolean open = OPEN_PRESS.poll();
 		boolean test = TEST_PRESS.poll();
 		boolean pause = PAUSE_PRESS.poll();
 		boolean stop = STOP_PRESS.poll();
@@ -47,6 +52,9 @@ public final class ModKeys {
 			return;
 		}
 
+		if (open && client.gui.screen() == null) {
+			client.gui.setScreen(new MusicScreen());
+		}
 		if (test) {
 			TestPlayback.play(client);
 		}

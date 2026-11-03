@@ -40,7 +40,6 @@ public final class UnliMusicCommand {
 	private static final int MAX_NAME_LENGTH = 40;
 	// Some stations list twenty tags or more; the first few say enough.
 	private static final int MAX_TAGS = 6;
-	private static final int MIN_TEXT_LENGTH = 2;
 	// Stations shown in chat by id, so that clicking a line can find what to play. Only touched on the game
 	// thread. The oldest are forgotten past the limit, by which time their lines have scrolled far away.
 	private static final Map<String, RadioStation> SHOWN = new LinkedHashMap<>() {
@@ -166,9 +165,8 @@ public final class UnliMusicCommand {
 
 	private static int searchByText(FabricClientCommandSource source, SearchBy by, String text) {
 		String value = text.strip();
-		// Radio Browser matches any part of a name or tag, so a single letter would match almost everything.
-		if (value.length() < MIN_TEXT_LENGTH) {
-			source.sendError(Component.translatable("command.unlimusic.radios.too_short", MIN_TEXT_LENGTH));
+		if (value.length() < RadioBrowserClient.MIN_TEXT_LENGTH) {
+			source.sendError(Component.translatable("command.unlimusic.radios.too_short", RadioBrowserClient.MIN_TEXT_LENGTH));
 			return 0;
 		}
 		String key = by == SearchBy.NAME ? "command.unlimusic.radios.named" : "command.unlimusic.radios.in_genre";
